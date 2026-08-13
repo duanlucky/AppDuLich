@@ -1,339 +1,1267 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Lịch Trình Chuyến Đi Ver6-5</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .tab-content { padding: 20px 0; }
-        #map { height: 450px; border-radius: 8px; }
-        .card { border: none; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); margin-bottom: 20px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Hành Trình Du Lịch Khứ Hồi 2026 (28/08 - 02/09/2026)</title>
+  
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Leaflet Routing Machine CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
+  <!-- Firebase App & Firestore CDN (Compat Version) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: #f4f6f8; padding: 8px; color: #333; -webkit-tap-highlight-color: transparent; }
+    .container { max-width: 980px; margin: 0 auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    
+    .header { text-align: center; margin-bottom: 18px; border-bottom: 2px solid #007bff; padding-bottom: 12px; }
+    .header h1 { color: #1a365d; font-size: 20px; margin-bottom: 6px; line-height: 1.3; }
+    .header p { color: #4a5568; font-size: 13px; font-weight: 500; }
+    
+    /* Thanh trạng thái đăng nhập */
+    .admin-bar { display: flex; flex-direction: column; gap: 10px; background: #edf2f7; padding: 10px 12px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; text-align: center; }
+    .admin-bar-btns { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; width: 100%; }
+    .badge-role { font-weight: 700; padding: 4px 8px; border-radius: 6px; display: inline-block; }
+    .role-user { background: #e2e8f0; color: #4a5568; }
+    .role-admin { background: #c53030; color: white; }
+
+    .card { background: #ffffff; border: 1px solid #e2e8f0; padding: 14px; border-radius: 10px; margin-bottom: 15px; }
+    .card h2 { color: #2b6cb0; font-size: 16px; margin-bottom: 12px; }
+    
+    .form-grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 10px; }
+    input[type="text"], input[type="number"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; -webkit-appearance: none; }
+    
+    .summary-box { background: #ebf8ff; border: 1px solid #bee3f8; padding: 12px; border-radius: 8px; margin-bottom: 12px; font-weight: bold; color: #2b6cb0; display: flex; flex-direction: column; gap: 8px; text-align: center; }
+    .summary-item span { display: block; font-size: 18px; color: #2c5282; margin-top: 2px; }
+
+    .btn-group { display: flex; flex-direction: column; gap: 8px; }
+    .btn { display: inline-block; width: 100%; text-align: center; background: #3182ce; color: white; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; text-decoration: none; transition: background 0.2s; }
+    .btn:active { opacity: 0.85; }
+    .btn-success { background: #38a169; }
+    .btn-danger { background: #e53e3e; color: white; border: none; padding: 6px 10px; font-size: 12px; border-radius: 4px; cursor: pointer; }
+    .btn-warning { background: #ed8936; }
+    .btn-dark { background: #4a5568; }
+    
+    #map { height: 380px; width: 100%; border-radius: 8px; border: 1px solid #cbd5e0; margin-top: 12px; z-index: 1; }
+    .leaflet-routing-container { display: none !important; }
+    
+    .custom-div-icon, .leg-badge-icon { background: transparent; border: none; }
+
+    .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
+    table { width: 100%; border-collapse: collapse; min-width: 500px; }
+    th, td { border: 1px solid #e2e8f0; padding: 8px 6px; text-align: left; font-size: 12px; line-height: 1.4; }
+    th { background: #f7fafc; color: #2d3748; font-weight: 700; }
+
+    .timeline { border-left: 2px solid #3182ce; padding-left: 12px; margin-left: 5px; }
+    .timeline-item { margin-bottom: 16px; }
+    .timeline-date { font-weight: bold; color: #2b6cb0; font-size: 13px; }
+    .timeline-title { font-size: 14px; font-weight: 600; margin: 3px 0; color: #1a202c; }
+    .timeline-desc { font-size: 12px; color: #4a5568; line-height: 1.5; }
+
+    /* Admin UI */
+    .admin-only { display: none !important; }
+    body.is-admin .admin-only { display: grid !important; }
+    body.is-admin .admin-flex { display: flex !important; }
+    body.is-admin .admin-col { display: table-cell !important; }
+    body:not(.is-admin) .admin-col { display: none !important; }
+
+    /* Khung Chat Online Phong cách Messenger/Zalo */
+    .chat-box { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; }
+    .chat-messages { height: 260px; overflow-y: auto; background: white; border: 1px solid #cbd5e0; border-radius: 6px; padding: 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
+    
+    .chat-msg { display: flex; flex-direction: column; max-width: 75%; }
+    .chat-msg.mine { align-self: flex-end; align-items: flex-end; }
+    .chat-msg.other { align-self: flex-start; align-items: flex-start; }
+    .chat-msg.system { align-self: center; align-items: center; max-width: 90%; width: 100%; }
+
+    .chat-msg .msg-info { font-size: 10px; color: #a0aec0; margin-bottom: 2px; }
+    .chat-msg.mine .msg-info { text-align: right; }
+    
+    .chat-msg .bubble { padding: 8px 12px; border-radius: 12px; font-size: 13px; word-break: break-word; line-height: 1.4; }
+    .chat-msg.mine .bubble { background: #007bff; color: white; border-top-right-radius: 2px; }
+    .chat-msg.other .bubble { background: #edf2f7; color: #2d3748; border-top-left-radius: 2px; }
+    .chat-msg.system .bubble { background: #e2e8f0; color: #4a5568; font-style: italic; text-align: center; border-radius: 6px; font-size: 12px; }
+
+    @media (min-width: 600px) {
+      body { padding: 15px; }
+      .container { padding: 25px; border-radius: 16px; }
+      .header h1 { font-size: 26px; }
+      .admin-bar { flex-direction: row; justify-content: space-between; text-align: left; }
+      .admin-bar-btns { width: auto; }
+      .summary-box { flex-direction: row; justify-content: space-around; }
+      .btn-group { flex-direction: row; }
+      .btn { width: auto; }
+      .form-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+      #map { height: 500px; }
+      table { min-width: 100%; }
+      th, td { padding: 10px; font-size: 13px; }
+      .chat-form-grid { grid-template-columns: 1fr 2fr auto !important; }
+    }
+
+    @media (max-width: 480px) {
+      .col-coord { display: none; }
+    }
+
+    /* ===========================
+       V6 FINAL - APP TRAVEL UI
+       =========================== */
+    .v6-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:0 0 15px;position:sticky;top:6px;z-index:20}
+    .v6-nav button{border:1px solid #dbe5ef;background:#fff;color:#334e68;border-radius:10px;padding:10px 6px;font-weight:700;font-size:12px;cursor:pointer;box-shadow:0 2px 7px rgba(0,0,0,.04)}
+    .v6-nav button.active{background:#1f6feb;color:#fff;border-color:#1f6feb}
+    .v6-hero{background:linear-gradient(135deg,#eaf4ff,#f7fbff);border:1px solid #cfe3f7;border-radius:14px;padding:15px;margin-bottom:15px}
+    .v6-hero-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+    .v6-hero h2{font-size:20px;color:#163a5f;margin:0 0 5px}
+    .v6-hero p{font-size:12px;color:#52677d;line-height:1.5}
+    .v6-pills{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
+    .v6-pill{background:#fff;border:1px solid #d8e6f2;border-radius:10px;padding:9px;text-align:center}
+    .v6-pill b{display:block;font-size:16px;color:#1f4e79}
+    .v6-pill span{font-size:10px;color:#718096}
+    .v6-section{display:none}
+    .v6-section.active{display:block}
+    .v6-card{background:#fff;border:1px solid #e1e8f0;border-radius:12px;padding:14px;margin-bottom:15px;box-shadow:0 2px 8px rgba(0,0,0,.035)}
+    .v6-card h3{font-size:15px;color:#244b6b;margin-bottom:10px}
+    .v6-table{width:100%;border-collapse:collapse}
+    .v6-table th,.v6-table td{border-bottom:1px solid #edf2f7;padding:9px 6px;font-size:12px;text-align:left;vertical-align:top}
+    .v6-table th{background:#f8fafc;color:#52606d}
+    .v6-actions{display:flex;gap:5px;flex-wrap:wrap}
+    .v6-mini{padding:5px 8px;border:0;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700}
+    .v6-edit{background:#fff3cd;color:#8a5a00}
+    .v6-del{background:#ffe3e3;color:#b42318}
+    .v6-empty{padding:18px;text-align:center;color:#718096;font-size:12px;background:#f8fafc;border-radius:9px}
+    .v6-expense-grid{display:grid;grid-template-columns:1fr;gap:8px}
+    .v6-expense-grid select,.v6-expense-grid input{width:100%;padding:10px;border:1px solid #cbd5e0;border-radius:7px;font-size:13px;background:#fff}
+    .v6-cost-summary{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+    .v6-cost-box{background:#f8fbff;border:1px solid #d9e8f5;border-radius:9px;padding:9px;text-align:center}
+    .v6-cost-box b{display:block;color:#1f4e79;font-size:15px}
+    .v6-cost-box span{font-size:10px;color:#718096}
+    .v6-cat-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #edf2f7;font-size:12px}
+    .v6-cat-row:last-child{border-bottom:0}
+    .v6-bar{height:7px;background:#edf2f7;border-radius:10px;overflow:hidden;margin:4px 0}
+    .v6-bar i{display:block;height:100%;background:#3182ce;border-radius:10px}
+    .v6-admin-note{font-size:11px;color:#718096;background:#f8fafc;padding:8px;border-radius:8px;margin-bottom:10px}
+    .v6-day{border-left:3px solid #3182ce;padding:9px 10px;margin-bottom:9px;background:#f8fbff;border-radius:0 8px 8px 0}
+    .v6-day b{color:#24557b;font-size:13px}
+    .v6-day p{font-size:11px;color:#52677d;line-height:1.5;margin-top:3px}
+    .v6-modal{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:center;justify-content:center;padding:15px;z-index:100}
+    .v6-modal.show{display:flex}
+    .v6-modal-box{width:100%;max-width:520px;background:#fff;border-radius:14px;padding:16px;max-height:90vh;overflow:auto}
+    .v6-modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .v6-close{border:0;background:#edf2f7;border-radius:50%;width:30px;height:30px;cursor:pointer}
+    .v6-admin-badge{font-size:10px;background:#fff4e5;color:#9a6700;border:1px solid #f6d58d;border-radius:20px;padding:4px 7px;font-weight:700}
+    @media(min-width:600px){
+      .v6-nav{grid-template-columns:repeat(6,1fr)}
+      .v6-pills{grid-template-columns:repeat(4,1fr)}
+      .v6-expense-grid{grid-template-columns:repeat(2,1fr)}
+      .v6-cost-summary{grid-template-columns:repeat(4,1fr)}
+    }
+
+  </style>
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#"><i class="fas fa-route me-2"></i>Trip Ver6-5 (28/08 - 02/09/2026)</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto" id="navTabs">
-                    <li class="nav-item"><a class="nav-link active" href="#" data-target="overview">Tổng quan</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#" data-target="route">Lộ trình</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#" data-target="itinerary">Lịch trình</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#" data-target="members">Thành viên</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#" data-target="costs">Chi phí</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#" data-target="admin">Quản trị</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container my-4">
-        <!-- TỔNG QUAN -->
-        <div id="section-overview" class="tab-pane-content">
-            <div class="row">
-                <div class="col-md-8">
-                    <div class="card p-4">
-                        <h2>Hành trình: Hà Nội – Thanh Hóa – Đồng Hới – Hội An – Huế – Hà Tĩnh – Hà Nội</h2>
-                        <p class="text-muted"><i class="far fa-calendar-alt me-2"></i>Thời gian: 28/08/2026 - 02/09/2026 (6 ngày 5 đêm)</p>
-                        <hr>
-                        <h5>Giới thiệu chung</h5>
-                        <p>Ứng dụng quản lý toàn diện lịch trình, bản đồ tuyến đường, thành viên, chi phí thực tế và trao đổi trực tuyến cho toàn đoàn trong suốt chuyến đi.</p>
-                        <a href="https://drive.google.com" target="_blank" class="btn btn-outline-primary mt-2"><i class="fab fa-google-drive me-2"></i>Truy cập kho ảnh chung (Google Drive)</a>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card p-4">
-                        <h4>Trạng thái hệ thống</h4>
-                        <p><span class="badge bg-success">Online</span> Kết nối Firebase Firestore</p>
-                        <hr>
-                        <div id="auth-status-box">
-                            <p id="admin-status-text" class="fw-bold text-secondary">Đang ở chế độ Thành viên (Xem)</p>
-                            <button class="btn btn-sm btn-dark w-100" data-bs-toggle="modal" data-bs-target="#loginModal">Đăng nhập Quản trị</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- LỘ TRÌNH -->
-        <div id="section-route" class="tab-pane-content" style="display: none;">
-            <div class="card p-3">
-                <h4>Bản đồ tuyến đường</h4>
-                <div id="map"></div>
-            </div>
-        </div>
-
-        <!-- LỊCH TRÌNH -->
-        <div id="section-itinerary" class="tab-pane-content" style="display: none;">
-            <div class="card p-4">
-                <h4>Chi tiết lịch trình theo ngày</h4>
-                <ul class="list-group mt-3">
-                    <li class="list-group-item"><strong>Ngày 1 (28/08):</strong> Hà Nội – Thanh Hóa</li>
-                    <li class="list-group-item"><strong>Ngày 2 (29/08):</strong> Thanh Hóa – Đồng Hới</li>
-                    <li class="list-group-item"><strong>Ngày 3 (30/08):</strong> Đồng Hới – Hội An</li>
-                    <li class="list-group-item"><strong>Ngày 4 (31/08):</strong> Khám phá Hội An – Huế</li>
-                    <li class="list-group-item"><strong>Ngày 5 (01/09):</strong> Huế – Hà Tĩnh</li>
-                    <li class="list-group-item"><strong>Ngày 6 (02/09):</strong> Hà Tĩnh – Hà Nội (Kết thúc chuyến đi)</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- THÀNH VIÊN -->
-        <div id="section-members" class="tab-pane-content" style="display: none;">
-            <div class="card p-4">
-                <h4>Danh sách thành viên đoàn</h4>
-                <table class="table table-striped mt-3">
-                    <thead>
-                        <tr><th>STT</th><th>Họ và Tên</th><th>Số điện thoại</th><th>Vai trò</th></tr>
-                    </thead>
-                    <tbody id="member-list-body">
-                        <tr><td>1</td><td>Nguyễn Tiến Duẩn</td><td>09xxxxxxxx</td><td>Trưởng đoàn / Lái chính</td></tr>
-                        <tr><td>2</td><td>Thành viên đoàn</td><td>09xxxxxxxx</td><td>Thành viên</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- CHI PHÍ -->
-        <div id="section-costs" class="tab-pane-content" style="display: none;">
-            <div class="card p-4">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h4>Quản lý Chi phí thực tế</h4>
-                    <button class="btn btn-primary btn-sm admin-only" style="display:none;" data-bs-toggle="modal" data-bs-target="#addCostModal"><i class="fas fa-plus me-1"></i>Thêm khoản chi</button>
-                </div>
-                <table class="table table-bordered mt-3">
-                    <thead>
-                        <tr><th>Nội dung</th><th>Danh mục</th><th>Số tiền (VNĐ)</th><th>Người chi</th></tr>
-                    </thead>
-                    <tbody id="cost-table-body">
-                        <!-- Dữ liệu từ Firestore -->
-                    </tbody>
-                </table>
-                <div class="alert alert-info mt-2">Tổng chi phí hiện tại: <strong id="total-cost">0</strong> VNĐ[cite: 1]</div>
-            </div>
-        </div>
-
-        <!-- QUẢN TRỊ -->
-        <div id="section-admin" class="tab-pane-content" style="display: none;">
-            <div class="card p-4">
-                <h4>Khu vực Quản trị hệ thống</h4>
-                <div id="admin-panel-content" style="display: none;">
-                    <hr>
-                    <h5>Đổi mật khẩu Quản trị (Lưu vào Database)</h5>
-                    <form id="formChangePassword">
-                        <div class="mb-3">
-                            <label class="form-label">Mật khẩu cũ</label>
-                            <input type="password" class="form-control" id="inputOldPassword" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Mật khẩu mới</label>
-                            <input type="password" class="form-control" id="inputNewPassword" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Xác nhận mật khẩu mới</label>
-                            <input type="password" class="form-control" id="inputConfirmPassword" required>
-                        </div>
-                        <button type="submit" class="btn btn-success">Cập nhật mật khẩu mới</button>
-                    </form>
-                    <button class="btn btn-danger mt-3" id="btnLogoutAdmin">Đăng xuất Quản trị</button>
-                </div>
-                <div id="admin-login-prompt">
-                    <p class="text-danger">Bạn cần đăng nhập quyền Quản trị viên để sử dụng tính năng này.</p>
-                    <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#loginModal">Đăng nhập ngay</button>
-                </div>
-            </div>
-        </div>
+  <div class="container">
+    <div class="header">
+      <h1>HÀNH TRÌNH DU LỊCH KHỨ HỒI 2026</h1>
+      <p>6 Ngày 5 Đêm: Hà Nội – Thanh Hóa – Đồng Hới – Hội An – Huế – Hà Tĩnh – Hà Nội</p>
     </div>
 
-    <!-- Modal Đăng Nhập -->
-    <div class="modal fade" id="loginModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Đăng nhập Quản trị viên</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Mật khẩu Quản trị</label>
-                        <input type="password" class="form-control" id="modalAdminPassword">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-primary" id="btnSubmitLogin">Xác nhận</button>
-                </div>
-            </div>
-        </div>
+    <!-- Thanh Quyền Hạn -->
+    <div class="admin-bar">
+      <div>
+        Quyền: <span id="role-display" class="badge-role role-user">Thành Viên (Chỉ Xem)</span>
+      </div>
+      <div class="admin-bar-btns">
+        <button id="btn-login-admin" class="btn btn-warning" onclick="loginAdmin()">🔐 Đăng Nhập Quản Trị</button>
+        <button id="btn-change-pwd" class="btn btn-dark admin-only admin-flex" onclick="changeAdminPassword()">🔑 Đổi Mật Khẩu</button>
+        <button id="btn-logout-admin" class="btn btn-danger admin-only admin-flex" onclick="logoutAdmin()">Thoát Quản Trị</button>
+      </div>
     </div>
 
-    <!-- Firebase v9 Compat Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Kho ảnh Google Drive -->
+    <div class="card">
+      <h2>📸 Kho Ảnh Chuyến Đi (Drive 100GB)</h2>
+      <p style="color: #4a5568; margin-bottom: 12px; font-size: 0.85em;">
+        Thành viên trong đoàn bấm nút dưới đây để xem toàn bộ ảnh hoặc tải ảnh mới chụp lên thư mục chung.
+      </p>
+      <div class="btn-group">
+        <a href="https://drive.google.com/drive/folders/1M5zW8BWHiyxcm79u8gM8M1ygGRYj4az4?usp=drive_link" target="_blank" class="btn">
+          📤 Tải Ảnh Lên Kho
+        </a>
+        <a href="https://drive.google.com/drive/folders/1M5zW8BWHiyxcm79u8gM8M1ygGRYj4az4?usp=drive_link" target="_blank" class="btn btn-success">
+          🖼️ Xem Kho Ảnh Đoàn
+        </a>
+      </div>
+    </div>
 
-    <script>
-        // Cấu hình Firebase (Thay thế bằng thông số dự án của bạn)
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
+    <!-- Bản đồ & Lộ trình -->
+    <div class="card">
+      <h2>🗺️ Lộ Trình & Tính Quãng Đường</h2>
+      
+      <div class="summary-box">
+        <div class="summary-item">Tổng Quãng Đường: <span id="total-distance">0 km</span></div>
+        <div class="summary-item">Thời Gian Lái Ước Tính: <span id="total-time">0 giờ</span></div>
+      </div>
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+      <div class="form-grid admin-only">
+        <input type="text" id="point-name" placeholder="Tên điểm đến mới">
+        <input type="text" id="point-desc" placeholder="Mô tả / Ghi chú">
+        <input type="number" step="any" id="point-lat" placeholder="Vĩ độ (Lat)">
+        <input type="number" step="any" id="point-lng" placeholder="Kinh độ (Lng)">
+      </div>
+      <div class="btn-group admin-only admin-flex" style="margin-bottom: 12px;">
+        <button class="btn" onclick="addCustomPoint()">➕ Thêm Điểm Vào Lộ Trình</button>
+        <button class="btn btn-warning" onclick="resetDefaultPoints()">🔄 Khôi Phục 7 Điểm Chuẩn</button>
+      </div>
 
-        // --- HÀM XỬ LÝ MẬT KHẨU TRÊN FIRESTORE ---
-        async function verifyAdminPassword(inputPassword) {
-            try {
-                const docRef = db.collection('settings').doc('admin_config');
-                const doc = await docRef.get();
-                
-                let currentAdminPass = 'admin123'; // Mật khẩu mặc định
-                
-                if (doc.exists && doc.data().adminPassword) {
-                    currentAdminPass = doc.data().adminPassword;
-                } else {
-                    await docRef.set({ adminPassword: currentAdminPass }, { merge: true });
-                }
+      <h3 style="font-size: 14px; margin-top: 10px;">📍 Danh Sách Các Điểm Dừng:</h3>
+      
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 35px;">STT</th>
+              <th>Tên Điểm</th>
+              <th class="col-coord">Tọa Độ</th>
+              <th>Mô Tả</th>
+              <th>Chặng Tiếp Theo</th>
+              <th class="admin-col">Xóa</th>
+            </tr>
+          </thead>
+          <tbody id="route-points-list"></tbody>
+        </table>
+      </div>
 
-                if (inputPassword === currentAdminPass) {
-                    sessionStorage.setItem('isAdminLoggedIn', 'true');
-                    return true;
-                }
-                return false;
-            } catch (error) {
-                console.error("Lỗi xác thực mật khẩu:", error);
-                alert("Không thể kết nối cơ sở dữ liệu để xác thực!");
-                return false;
-            }
+      <div id="map"></div>
+    </div>
+
+    <!-- Quản lý Thành viên -->
+    <div class="card">
+      <h2>👥 Thành Viên Trong Đoàn</h2>
+      
+      <div class="form-grid admin-only">
+        <input type="text" id="member-name" placeholder="Họ và tên">
+        <input type="text" id="member-phone" placeholder="Số điện thoại">
+        <input type="text" id="member-role" placeholder="Vai trò (VD: Lái chính)">
+      </div>
+      <button class="btn btn-success admin-only admin-flex" onclick="addMember()" style="margin-bottom: 12px;">➕ Thêm Thành Viên</button>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Họ Tên</th>
+              <th>SĐT</th>
+              <th>Vai Trò</th>
+              <th class="admin-col">Thao Tác</th>
+            </tr>
+          </thead>
+          <tbody id="member-list"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Khung Chat Online -->
+    <div class="card">
+      <h2>💬 Trò Chuyện Online</h2>
+      <div class="chat-box">
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="form-grid chat-form-grid" style="gap: 6px;">
+          <input type="text" id="chat-user" placeholder="HỌ VÀ TÊN (IN HOA)" style="text-transform: uppercase;">
+          <input type="text" id="chat-text" placeholder="Nhập tin nhắn..." onkeypress="if(event.key === 'Enter') sendChatMessage()">
+          <button class="btn btn-success" onclick="sendChatMessage()">Gửi 📤</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lịch trình chi tiết 6 ngày 5 đêm -->
+    <div class="card">
+      <h2>📅 Lịch Trình Chi Tiết 6N5Đ</h2>
+      <div class="timeline">
+        
+        <div class="timeline-item">
+          <div class="timeline-date">NGÀY 1: THỨ 6 - 28/08/2026</div>
+          <div class="timeline-title">Hà Nội ➔ Thanh Hóa</div>
+          <div class="timeline-desc">
+            • <b>17:00:</b> Xuất phát từ Hateco Apollo.<br>
+            • <b>22:00:</b> Đến TP Thanh Hóa, nhận phòng nghỉ đêm (Đêm 1).
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-date">NGÀY 2: THỨ 7 - 29/08/2026</div>
+          <div class="timeline-title">Thanh Hóa ➔ Đồng Hới ➔ Hội An</div>
+          <div class="timeline-desc">
+            • <b>05:00 - 07:00:</b> Xuất phát đi Đồng Hới.<br>
+            • <b>Trưa:</b> Ăn trưa tại Đồng Hới.<br>
+            • <b>Chiều:</b> Tiếp tục di chuyển vào Hội An.<br>
+            • <b>Tối:</b> Đến Hội An, nhận phòng và nghỉ đêm (Đêm 2).
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-date">NGÀY 3: CHỦ NHẬT - 30/08/2026</div>
+          <div class="timeline-title">Hội An ➔ Di Chuyển Sang Huế</div>
+          <div class="timeline-desc">
+            • <b>Sáng & Trưa:</b> Khám phá Phố cổ Hội An & Rừng dừa Bảy Mẫu.<br>
+            • <b>16:00 - 17:00:</b> Khởi hành sang TP Huế.<br>
+            • <b>Tối:</b> Ăn tối, thưởng thức ẩm thực Cố đô, nghỉ đêm tại Huế (Đêm 3).
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-date">NGÀY 4: THỨ 2 - 31/08/2026</div>
+          <div class="timeline-title">Khám Phá Cố Đô Huế</div>
+          <div class="timeline-desc">
+            • <b>Cả ngày:</b> Tham quan Đại Nội, các Lăng tẩm, Chùa Thiên Mụ...<br>
+            • <b>Tối:</b> Tự do dạo phố, ngắm sông Hương và nghỉ đêm tại Huế (Đêm 4).
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-date">NGÀY 5: THỨ 3 - 01/09/2026</div>
+          <div class="timeline-title">Huế ➔ Đồng Hới ➔ Vinpearl Hà Tĩnh</div>
+          <div class="timeline-desc">
+            • <b>08:00:</b> Khởi hành từ Huế về hướng Hà Tĩnh.<br>
+            • <b>Trưa:</b> Dừng ăn trưa tại Đồng Hới.<br>
+            • <b>Chiều tối:</b> Đến Vinpearl Hà Tĩnh, nhận phòng nghỉ đêm (Đêm 5).
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-date">NGÀY 6: THỨ 4 - 02/09/2026</div>
+          <div class="timeline-title">Hà Tĩnh ➔ Hateco Apollo (Về Đích)</div>
+          <div class="timeline-desc">
+            • <b>Sáng:</b> Dạo chơi, tắm biển Hà Tĩnh, ăn sáng.<br>
+            • <b>08:00 - 09:00:</b> Khởi hành về Hà Nội.<br>
+            • <b>Chiều:</b> Về tới Hateco Apollo. Kết thúc chuyến đi an toàn!
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+
+    <!-- ================= V6 FINAL ================= -->
+    <div class="v6-nav">
+      <button class="active" onclick="v6Show('home',this)">🏠 Tổng quan</button>
+      <button onclick="v6Show('route',this)">🗺️ Lộ trình</button>
+      <button onclick="v6Show('schedule',this)">📅 Lịch trình</button>
+      <button onclick="v6Show('members',this)">👥 Thành viên</button>
+      <button onclick="v6Show('cost',this)">💰 Chi phí</button>
+      <button onclick="v6Show('tools',this)">⚙️ Quản trị</button>
+    </div>
+
+    <section id="v6-home" class="v6-section active">
+      <div class="v6-hero">
+        <div class="v6-hero-top">
+          <div>
+            <h2>🌄 Hành trình 2026</h2>
+            <p>28/08 → 02/09/2026 · 6 ngày 5 đêm<br>Hà Nội → Thanh Hóa → Đồng Hới → Hội An → Huế → Hà Tĩnh → Hà Nội</p>
+          </div>
+          <span class="v6-admin-badge" id="v6-role-badge">THÀNH VIÊN</span>
+        </div>
+        <div class="v6-pills">
+          <div class="v6-pill"><b id="v6-total-km">0 km</b><span>Quãng đường</span></div>
+          <div class="v6-pill"><b>6 ngày</b><span>Hành trình</span></div>
+          <div class="v6-pill"><b id="v6-member-count">0</b><span>Thành viên</span></div>
+          <div class="v6-pill"><b id="v6-cost-total">0 đ</b><span>Tổng chi phí</span></div>
+        </div>
+      </div>
+      <div class="v6-card">
+        <h3>🧭 Trạng thái chuyến đi</h3>
+        <div class="v6-day"><b>28/08 · Hà Nội → Thanh Hóa</b><p>Xuất phát 17:00 · nghỉ đêm 1</p></div>
+        <div class="v6-day"><b>29/08 · Thanh Hóa → Đồng Hới → Hội An</b><p>Ngày di chuyển dài · nghỉ đêm 2</p></div>
+        <div class="v6-day"><b>30/08 · Hội An → Huế</b><p>Tham quan Hội An · nghỉ đêm 3</p></div>
+        <div class="v6-day"><b>31/08 · Huế</b><p>Khám phá Cố đô · nghỉ đêm 4</p></div>
+        <div class="v6-day"><b>01/09 · Huế → Hà Tĩnh</b><p>Di chuyển về phía Bắc · nghỉ đêm 5</p></div>
+        <div class="v6-day"><b>02/09 · Hà Tĩnh → Hà Nội</b><p>Chặng cuối · kết thúc hành trình</p></div>
+      </div>
+    </section>
+
+    <section id="v6-route" class="v6-section">
+      <div class="v6-card">
+        <h3>🗺️ Bản đồ & lộ trình</h3>
+        <div id="v6-route-summary" class="v6-admin-note">Lộ trình được đồng bộ từ dữ liệu chuyến đi.</div>
+        <div id="v6-route-copy"></div>
+      </div>
+    </section>
+
+    <section id="v6-schedule" class="v6-section">
+      <div class="v6-card">
+        <h3>📅 Lịch trình 6 ngày 5 đêm</h3>
+        <div class="v6-day"><b>NGÀY 1 · 28/08</b><p>17:00 xuất phát từ Hateco Apollo → Thanh Hóa · nhận phòng.</p></div>
+        <div class="v6-day"><b>NGÀY 2 · 29/08</b><p>Thanh Hóa → Đồng Hới → Hội An · ăn trưa tại Đồng Hới · nhận phòng Hội An.</p></div>
+        <div class="v6-day"><b>NGÀY 3 · 30/08</b><p>Khám phá Hội An → chiều di chuyển sang Huế.</p></div>
+        <div class="v6-day"><b>NGÀY 4 · 31/08</b><p>Khám phá Đại Nội, lăng tẩm, Chùa Thiên Mụ và Huế.</p></div>
+        <div class="v6-day"><b>NGÀY 5 · 01/09</b><p>Huế → Đồng Hới → Vinpearl Hà Tĩnh.</p></div>
+        <div class="v6-day"><b>NGÀY 6 · 02/09</b><p>Hà Tĩnh → Hà Nội · kết thúc hành trình.</p></div>
+      </div>
+    </section>
+
+    <section id="v6-members" class="v6-section">
+      <div class="v6-card">
+        <h3>👥 Thành viên trong đoàn</h3>
+        <div id="v6-members-copy"></div>
+      </div>
+    </section>
+
+    <section id="v6-cost" class="v6-section">
+      <div class="v6-card">
+        <h3>💰 Quản lý chi phí thực tế</h3>
+        <div class="v6-admin-note">
+          ☁️ <b>Dữ liệu được lưu trực tiếp trên Firebase Firestore</b> — không lưu cục bộ trên máy.
+          Khi ứng dụng được đưa lên GitHub Pages, mọi thành viên mở cùng ứng dụng sẽ đọc cùng một cơ sở dữ liệu.
+          Chỉ Quản trị viên đã đăng nhập mới được thêm, sửa hoặc xóa.
+        </div>
+        <div class="v6-cost-summary">
+          <div class="v6-cost-box"><b id="v6-cost-total2">0 đ</b><span>Tổng cộng</span></div>
+          <div class="v6-cost-box"><b id="v6-cost-count">0</b><span>Khoản chi</span></div>
+          <div class="v6-cost-box"><b id="v6-cost-avg">0 đ</b><span>Bình quân/khoản</span></div>
+          <div class="v6-cost-box"><b id="v6-cost-dayavg">0 đ</b><span>Bình quân/ngày</span></div>
+        </div>
+        <div id="v6-cost-cats"></div>
+      </div>
+
+      <div class="v6-card">
+        <h3>📋 Chi phí thực tế <span id="v6-db-status" style="font-size:10px;color:#3182ce;font-weight:600">● Đang kết nối Firebase...</span></h3>
+        <div id="v6-cost-admin-form" class="admin-only">
+          <div class="v6-expense-grid">
+            <input type="date" id="v6-exp-date">
+            <select id="v6-exp-cat">
+              <option>Xăng</option>
+              <option>Lưu trú</option>
+              <option>Ăn uống</option>
+              <option>Vé tham quan</option>
+              <option>Quà lưu niệm</option>
+              <option>Vé đường bộ</option>
+              <option>Gửi xe</option>
+            </select>
+            <input type="text" id="v6-exp-desc" placeholder="Nội dung khoản chi thực tế">
+            <input type="text" id="v6-exp-amount" inputmode="numeric" autocomplete="off" title="Ví dụ: 1.500.000" placeholder="Số tiền (VNĐ)" oninput="v6FormatMoneyInput(this)">
+            <input type="text" id="v6-exp-payer" list="v6-member-payer-list"
+              placeholder="Người trả / gia đình — chọn hoặc tự nhập">
+            <datalist id="v6-member-payer-list"></datalist>
+          </div>
+          <button class="btn btn-success" style="margin-top:8px" onclick="v6SaveExpense()">💾 Lưu khoản chi</button>
+        </div>
+        <div class="table-container" style="margin-top:12px">
+          <table class="v6-table">
+            <thead><tr><th>Ngày</th><th>Khoản mục</th><th>Nội dung</th><th>Người trả</th><th>Số tiền</th><th class="admin-col">Thao tác</th></tr></thead>
+            <tbody id="v6-expense-list"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="v6-tools" class="v6-section">
+      <div class="v6-card">
+        <h3>⚙️ Khu vực quản trị</h3>
+        <div class="v6-admin-note">Khi chưa đăng nhập: toàn bộ ứng dụng ở chế độ Thành viên — chỉ xem. Sau khi đăng nhập Quản trị, các nút thêm/sửa/xóa mới được kích hoạt. Nút “Xóa chi phí mẫu” chỉ xóa dữ liệu mẫu; chi phí thực tế phải sửa/xóa ngay tại bảng Quản lý chi phí.</div>
+        <button class="btn btn-warning admin-only admin-flex" onclick="v6SeedCostDemo()">🧪 Tạo dữ liệu mẫu chi phí</button>
+        <button class="btn btn-danger admin-only admin-flex" style="margin-top:8px" onclick="v6ClearDemoExpenses()">🗑️ Xóa chi phí mẫu</button>
+      </div>
+    </section>
+
+    <div id="v6-expense-modal" class="v6-modal">
+      <div class="v6-modal-box">
+        <div class="v6-modal-head"><b>✏️ Sửa khoản chi</b><button class="v6-close" onclick="v6CloseModal()">×</button></div>
+        <input type="hidden" id="v6-edit-id">
+        <div class="v6-expense-grid">
+          <input type="date" id="v6-edit-date">
+          <select id="v6-edit-cat">
+            <option>Xăng</option><option>Lưu trú</option><option>Ăn uống</option><option>Vé tham quan</option>
+            <option>Quà lưu niệm</option><option>Vé đường bộ</option><option>Gửi xe</option>
+          </select>
+          <input type="text" id="v6-edit-desc" placeholder="Nội dung">
+          <input type="text" id="v6-edit-amount" inputmode="numeric" autocomplete="off" title="Ví dụ: 1.500.000" placeholder="Số tiền" oninput="v6FormatMoneyInput(this)">
+          <input type="text" id="v6-edit-payer" list="v6-member-payer-edit-list"
+            placeholder="Người trả / gia đình — chọn hoặc tự nhập">
+          <datalist id="v6-member-payer-edit-list"></datalist>
+        </div>
+        <button class="btn btn-success" style="margin-top:10px" onclick="v6UpdateExpense()">Cập nhật</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ==========================================
+    // CẤU HÌNH FIREBASE (Dự án: AppDuLich)
+    // ==========================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyCVuCRzrkhCGqQCZuXYcnHovAu0dgy0Fao",
+      authDomain: "appdulich-d2203.firebaseapp.com",
+      projectId: "appdulich-d2203",
+      storageBucket: "appdulich-d2203.firebasestorage.app",
+      messagingSenderId: "618555116660",
+      appId: "1:618555116660:web:881d55194389af106a5521",
+      measurementId: "G-6PJ7PGX2GZ"
+    };
+
+    // Khởi tạo Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let map = null;
+    let routingControl = null;
+    let legBadgeMarkers = [];
+    let fallbackPolyline = null;
+
+    const defaultPoints = [
+      { name: "1. Hateco Apollo (Xuân Phương)", lat: 21.0477, lng: 105.7344, desc: "Xuất phát: 17:00 ngày 28/08/2026" },
+      { name: "2. TP Thanh Hoá", lat: 19.8079, lng: 105.7770, desc: "Nghỉ đêm 1 (22:00 ngày 28/08)" },
+      { name: "3. TP Đồng Hới", lat: 17.4661, lng: 106.6192, desc: "Dừng ăn trưa ngày 29/08 & 01/09" },
+      { name: "4. Phố cổ Hội An", lat: 15.8806, lng: 108.3307, desc: "Khám phá Hội An & Nghỉ đêm 2" },
+      { name: "5. Thành phố Huế", lat: 16.4759, lng: 107.5891, desc: "Khám phá Huế & Nghỉ đêm 3, Đêm 4" },
+      { name: "6. Vinpearl Hà Tĩnh", lat: 18.5054, lng: 105.8871, desc: "Nghỉ đêm 5 (Ngày 01/09)" },
+      { name: "7. Hateco Apollo (Về đích)", lat: 21.0477, lng: 105.7344, desc: "Kết thúc hành trình (Ngày 02/09)" }
+    ];
+
+    const presetLegs = [
+      { km: 158.0, timeMin: 135 },
+      { km: 325.0, timeMin: 285 },
+      { km: 310.0, timeMin: 330 },
+      { km: 125.0, timeMin: 150 },
+      { km: 270.0, timeMin: 270 },
+      { km: 340.0, timeMin: 315 }
+    ];
+
+    document.addEventListener('DOMContentLoaded', function() {
+      checkAdminStatus();
+      initMap();
+      listenFirebaseData();
+
+      // Điền sẵn tên nếu đã lưu trên trình duyệt
+      const savedName = localStorage.getItem('chat_my_name');
+      if (savedName) {
+        document.getElementById('chat-user').value = savedName;
+      }
+
+      document.getElementById('chat-user').addEventListener('input', function() {
+        this.value = this.value.toUpperCase();
+        localStorage.setItem('chat_my_name', this.value.trim());
+      });
+    });
+
+    function getAdminPassword() {
+      return localStorage.getItem('admin_pwd') || 'admin123';
+    }
+
+    function checkAdminStatus() {
+      const isAdmin = sessionStorage.getItem('is_admin') === 'true';
+      const roleDisplay = document.getElementById('role-display');
+      const btnLogin = document.getElementById('btn-login-admin');
+
+      if (isAdmin) {
+        document.body.classList.add('is-admin');
+        roleDisplay.className = 'badge-role role-admin';
+        roleDisplay.innerText = 'Quản Trị Viên';
+        btnLogin.style.display = 'none';
+      } else {
+        document.body.classList.remove('is-admin');
+        roleDisplay.className = 'badge-role role-user';
+        roleDisplay.innerText = 'Thành Viên (Chỉ Xem)';
+        btnLogin.style.display = 'inline-block';
+      }
+    }
+
+    function loginAdmin() {
+      const pwd = prompt("Nhập mật khẩu quản trị:");
+      if (pwd === getAdminPassword()) {
+        sessionStorage.setItem('is_admin', 'true');
+        checkAdminStatus();
+        alert("Đăng nhập quản trị thành công!");
+      } else if (pwd !== null) {
+        alert("Mật khẩu không chính xác!");
+      }
+    }
+
+    function logoutAdmin() {
+      sessionStorage.removeItem('is_admin');
+      checkAdminStatus();
+    }
+
+    function changeAdminPassword() {
+      const oldPwd = prompt("Nhập mật khẩu cũ:");
+      if (oldPwd === getAdminPassword()) {
+        const newPwd = prompt("Nhập mật khẩu mới:");
+        if (newPwd && newPwd.trim() !== '') {
+          localStorage.setItem('admin_pwd', newPwd.trim());
+          alert("Cập nhật mật khẩu thành công!");
+        }
+      } else if (oldPwd !== null) {
+        alert("Mật khẩu cũ không khớp!");
+      }
+    }
+
+    // ==========================================
+    // ĐỒNG BỘ DỮ LIỆU THỜI GIAN THỰC TỪ FIRESTORE
+    // ==========================================
+    function listenFirebaseData() {
+      db.collection("trip_data").doc("points").onSnapshot((doc) => {
+        let points = defaultPoints;
+        if (doc.exists && doc.data().list) {
+          points = doc.data().list;
+        } else {
+          db.collection("trip_data").doc("points").set({ list: defaultPoints });
+        }
+        renderPointsTable(points, null);
+        renderRoadRouting(points);
+      });
+
+      db.collection("trip_data").doc("members").onSnapshot((doc) => {
+        let members = [{ name: "Nguyễn Tiến Duẩn", phone: "098x xxx xxx", role: "Trưởng đoàn / Lái chính" }];
+        if (doc.exists && doc.data().list) {
+          members = doc.data().list;
+        } else {
+          db.collection("trip_data").doc("members").set({ list: members });
+        }
+        renderMembers(members);
+      });
+
+      db.collection("trip_data").doc("chat").onSnapshot((doc) => {
+        let messages = [{ user: "HỆ THỐNG", text: "Chào mừng cả đoàn đến với kênh trao đổi chuyến đi 2026!", time: "10:00" }];
+        if (doc.exists && doc.data().list) {
+          messages = doc.data().list;
+        } else {
+          db.collection("trip_data").doc("chat").set({ list: messages });
+        }
+        renderChatMessages(messages);
+      });
+    }
+
+    function renderChatMessages(messages) {
+      const chatBox = document.getElementById('chat-messages');
+      const myName = (localStorage.getItem('chat_my_name') || '').trim().toUpperCase();
+      chatBox.innerHTML = '';
+
+      messages.forEach(msg => {
+        let msgUserUpper = (msg.user || '').trim().toUpperCase();
+        let msgType = 'other';
+
+        if (msgUserUpper === 'HỆ THỐNG') {
+          msgType = 'system';
+        } else if (myName && msgUserUpper === myName) {
+          msgType = 'mine';
         }
 
-        async function changeAdminPassword(oldPassword, newPassword) {
-            try {
-                const docRef = db.collection('settings').doc('admin_config');
-                const doc = await docRef.get();
-                
-                let currentAdminPass = 'admin123';
-                if (doc.exists && doc.data().adminPassword) {
-                    currentAdminPass = doc.data().adminPassword;
-                }
+        chatBox.innerHTML += `
+          <div class="chat-msg ${msgType}">
+            <div class="msg-info"><b>${msg.user}</b> • ${msg.time}</div>
+            <div class="bubble">${msg.text}</div>
+          </div>
+        `;
+      });
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
 
-                if (oldPassword !== currentAdminPass) {
-                    alert("Mật khẩu cũ không chính xác!");
-                    return false;
-                }
+    function sendChatMessage() {
+      let userInput = document.getElementById('chat-user').value.trim().toUpperCase();
+      let textInput = document.getElementById('chat-text').value.trim();
 
-                await docRef.set({ adminPassword: newPassword }, { merge: true });
-                alert("Đổi mật khẩu thành công và đã lưu lên cơ sở dữ liệu!");
-                return true;
-            } catch (error) {
-                console.error("Lỗi cập nhật mật khẩu:", error);
-                alert("Đổi mật khẩu thất bại do lỗi kết nối.");
-                return false;
-            }
-        }
+      if (!userInput) return alert("Vui lòng nhập Họ tên!");
+      if (!textInput) return alert("Vui lòng nhập nội dung nhắn!");
 
-        // --- GIAO DIỆN & TAB LOGIC ---
-        document.querySelectorAll('#navTabs .nav-link').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                document.querySelectorAll('#navTabs .nav-link').forEach(l => l.classList.remove('active'));
-                this.classList.add('active');
+      localStorage.setItem('chat_my_name', userInput);
 
-                const target = this.getAttribute('data-target');
-                document.querySelectorAll('.tab-pane-content').forEach(pane => pane.style.display = 'none');
-                document.getElementById('section-' + target).style.display = 'block';
+      const now = new Date();
+      const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
-                if (target === 'route') {
-                    setTimeout(() => { map.invalidateSize(); }, 200);
-                }
-            });
+      db.collection("trip_data").doc("chat").get().then((doc) => {
+        let messages = doc.exists && doc.data().list ? doc.data().list : [];
+        messages.push({ user: userInput, text: textInput, time: timeStr });
+        db.collection("trip_data").doc("chat").set({ list: messages }).then(() => {
+          document.getElementById('chat-text').value = '';
         });
+      });
+    }
 
-        // Bản đồ Leaflet khởi tạo
-        const map = L.map('map').setView([18.5, 105.8], 7);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.geojson' || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
+    function calcDistanceKm(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c * 1.25;
+    }
+
+    function initMap() {
+      try {
+        if (!map) {
+          map = L.map('map').setView([18.5, 106.0], 6);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap'
-        }).addTo(map);
+          }).addTo(map);
+        }
+      } catch (err) {
+        console.error("Lỗi khởi tạo bản đồ:", err);
+      }
+    }
 
-        // Kiểm tra quyền Quản trị hiển thị UI
-        function updateAdminUI() {
-            const isLoggedIn = sessionStorage.getItem('isAdminLoggedIn') === 'true';
-            if (isLoggedIn) {
-                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'inline-block');
-                document.getElementById('admin-panel-content').style.display = 'block';
-                document.getElementById('admin-login-prompt').style.display = 'none';
-                document.getElementById('admin-status-text').innerText = 'Đang ở chế độ Quản trị viên';
-                document.getElementById('admin-status-text').className = 'fw-bold text-success';
-            } else {
-                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
-                document.getElementById('admin-panel-content').style.display = 'none';
-                document.getElementById('admin-login-prompt').style.display = 'block';
-                document.getElementById('admin-status-text').innerText = 'Đang ở chế độ Thành viên (Xem)';
-                document.getElementById('admin-status-text').className = 'fw-bold text-secondary';
+    function clearLegBadges() {
+      legBadgeMarkers.forEach(m => map.removeLayer(m));
+      legBadgeMarkers = [];
+      if (fallbackPolyline) {
+        map.removeLayer(fallbackPolyline);
+        fallbackPolyline = null;
+      }
+    }
+
+    function renderRoadRouting(points) {
+      if (routingControl) {
+        map.removeControl(routingControl);
+      }
+
+      let waypoints = points.map(p => L.latLng(p.lat, p.lng));
+
+      routingControl = L.Routing.control({
+        waypoints: waypoints,
+        router: L.Routing.osrmv1({
+          serviceUrl: 'https://router.project-osrm.org/route/v1',
+          profile: 'car'
+        }),
+        lineOptions: {
+          styles: [{ color: '#007bff', weight: 4, opacity: 0.8 }]
+        },
+        createMarker: function(i, wp) {
+          let p = points[i] || { name: `Điểm ${i+1}`, desc: "" };
+          let customIcon;
+
+          let isSameLocation = (points.length > 1 && points[0].lat === points[points.length-1].lat && points[0].lng === points[points.length-1].lng);
+          let transformStyle = "";
+          if (isSameLocation) {
+            if (i === 0) {
+              transformStyle = "transform: translateX(-16px);";
+            } else if (i === points.length - 1) {
+              transformStyle = "transform: translateX(16px);";
             }
+          }
+
+          if (i === 0) {
+            customIcon = L.divIcon({
+              className: 'custom-div-icon',
+              html: `<div style="background-color:#28a745;color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);${transformStyle}" title="Xuất phát">${i + 1}</div>`,
+              iconSize: [32, 32],
+              iconAnchor: [16, 16]
+            });
+          } else if (i === points.length - 1) {
+            customIcon = L.divIcon({
+              className: 'custom-div-icon',
+              html: `<div style="background-color:#6f42c1;color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);${transformStyle}" title="Về đích">${i + 1}</div>`,
+              iconSize: [32, 32],
+              iconAnchor: [16, 16]
+            });
+          } else {
+            customIcon = L.divIcon({
+              className: 'custom-div-icon',
+              html: `<div style="background-color:#007bff;color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);">${i + 1}</div>`,
+              iconSize: [32, 32],
+              iconAnchor: [16, 16]
+            });
+          }
+
+          return L.marker(wp.latLng, { icon: customIcon }).bindPopup(`<b>${p.name}</b><br>${p.desc}`);
+        },
+        addWaypoints: false,
+        routeWhileDragging: false
+      }).addTo(map);
+
+      routingControl.on('routesfound', function(e) {
+        let route = e.routes[0];
+        renderPointsTable(points, route);
+      });
+
+      routingControl.on('routingerror', function() {
+        if (!fallbackPolyline) {
+          let latLngs = points.map(p => [p.lat, p.lng]);
+          fallbackPolyline = L.polyline(latLngs, { color: '#007bff', weight: 3, dashArray: '5, 8' }).addTo(map);
+        }
+      });
+    }
+
+    function renderPointsTable(points, route) {
+      clearLegBadges();
+      let tbody = document.getElementById('route-points-list');
+      tbody.innerHTML = '';
+
+      let totalKmSum = 0;
+      let totalMinSum = 0;
+      let isDefaultList = points.length === defaultPoints.length;
+
+      points.forEach((p, index) => {
+        let legInfo = "-";
+
+        if (index < points.length - 1) {
+          let legKm = 0;
+          let legMin = 0;
+          let midLat = (p.lat + points[index+1].lat) / 2;
+          let midLng = (p.lng + points[index+1].lng) / 2;
+
+          if (route && route.legs && route.legs[index]) {
+            let leg = route.legs[index];
+            legKm = (leg.summary.totalDistance / 1000);
+            legMin = Math.round(leg.summary.totalTime / 60);
+
+            if (leg.coordinates && leg.coordinates.length > 0) {
+              let midCoord = leg.coordinates[Math.floor(leg.coordinates.length / 2)];
+              midLat = midCoord.lat;
+              midLng = midCoord.lng;
+            }
+          } 
+          else if (isDefaultList && presetLegs[index]) {
+            legKm = presetLegs[index].km;
+            legMin = presetLegs[index].timeMin;
+          } 
+          else {
+            legKm = calcDistanceKm(p.lat, p.lng, points[index+1].lat, points[index+1].lng);
+            legMin = Math.round((legKm / 60) * 60);
+          }
+
+          totalKmSum += legKm;
+          totalMinSum += legMin;
+
+          let legH = Math.floor(legMin / 60);
+          let legM = legMin % 60;
+          let timeStr = legH > 0 ? `${legH}g${legM}p` : `${legM}p`;
+
+          legInfo = `<span style="color:#2b6cb0; font-weight:600;">➔ Điểm ${index+2}: ${legKm.toFixed(1)} km (~${timeStr})</span>`;
+
+          let badge = L.marker([midLat, midLng], {
+            icon: L.divIcon({
+              className: 'leg-badge-icon',
+              html: `<div style="background:#1a365d;color:white;padding:2px 6px;border-radius:10px;font-size:10px;font-weight:bold;white-space:nowrap;border:1px solid white;">➔ ${legKm.toFixed(1)} km</div>`,
+              iconAnchor: [25, 8]
+            })
+          }).addTo(map);
+
+          legBadgeMarkers.push(badge);
+
+        } else if (index === points.length - 1) {
+          legInfo = `<span style="color:#6f42c1; font-weight:600;">🏁 Về đích</span>`;
         }
 
-        // Sự kiện Đăng nhập
-        document.getElementById('btnSubmitLogin').addEventListener('click', async () => {
-            const pass = document.getElementById('modalAdminPassword').value;
-            const success = await verifyAdminPassword(pass);
-            if (success) {
-                bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
-                document.getElementById('modalAdminPassword').value = '';
-                updateAdminUI();
-                alert("Đăng nhập thành công quyền Quản trị!");
-            } else {
-                alert("Mật khẩu không đúng!");
-            }
+        tbody.innerHTML += `
+          <tr>
+            <td><b>${index + 1}</b></td>
+            <td><b>${p.name}</b></td>
+            <td class="col-coord"><code>${p.lat}, ${p.lng}</code></td>
+            <td>${p.desc || '-'}</td>
+            <td>${legInfo}</td>
+            <td class="admin-col">
+              <button class="btn btn-danger" onclick="deletePoint(${index})">Xóa</button>
+            </td>
+          </tr>
+        `;
+      });
+
+      let sumH = Math.floor(totalMinSum / 60);
+      let sumM = totalMinSum % 60;
+      document.getElementById('total-distance').innerText = `${totalKmSum.toFixed(1)} km`;
+      document.getElementById('total-time').innerText = `${sumH} giờ ${sumM} phút`;
+    }
+
+    function addCustomPoint() {
+      if (sessionStorage.getItem('is_admin') !== 'true') return alert('Chức năng này chỉ dành cho Quản trị viên.');
+      let name = document.getElementById('point-name').value;
+      let desc = document.getElementById('point-desc').value;
+      let lat = parseFloat(document.getElementById('point-lat').value);
+      let lng = parseFloat(document.getElementById('point-lng').value);
+
+      if (!name || isNaN(lat) || isNaN(lng)) {
+        return alert("Vui lòng nhập Tên điểm, Vĩ độ và Kinh độ!");
+      }
+
+      db.collection("trip_data").doc("points").get().then((doc) => {
+        let points = doc.exists && doc.data().list ? doc.data().list : defaultPoints;
+        points.splice(points.length - 1, 0, { name, lat, lng, desc });
+        
+        db.collection("trip_data").doc("points").set({ list: points }).then(() => {
+          document.getElementById('point-name').value = '';
+          document.getElementById('point-desc').value = '';
+          document.getElementById('point-lat').value = '';
+          document.getElementById('point-lng').value = '';
         });
+      });
+    }
 
-        // Đăng xuất Quản trị
-        document.getElementById('btnLogoutAdmin').addEventListener('click', () => {
-            sessionStorage.removeItem('isAdminLoggedIn');
-            updateAdminUI();
-            alert("Đã đăng xuất phiên quản trị.");
+    function deletePoint(index) {
+      if (sessionStorage.getItem('is_admin') !== 'true') return alert('Chức năng này chỉ dành cho Quản trị viên.');
+      db.collection("trip_data").doc("points").get().then((doc) => {
+        let points = doc.exists && doc.data().list ? doc.data().list : defaultPoints;
+        if (points.length <= 2) return alert("Lộ trình cần ít nhất 2 điểm!");
+        points.splice(index, 1);
+        db.collection("trip_data").doc("points").set({ list: points });
+      });
+    }
+
+    function resetDefaultPoints() {
+      if (sessionStorage.getItem('is_admin') !== 'true') return alert('Chức năng này chỉ dành cho Quản trị viên.');
+      if (confirm("Bạn có chắc chắn muốn khôi phục lại 7 điểm chuẩn ban đầu?")) {
+        db.collection("trip_data").doc("points").set({ list: defaultPoints });
+      }
+    }
+
+    function renderMembers(members) {
+      let tbody = document.getElementById('member-list');
+      tbody.innerHTML = '';
+      members.forEach((m, index) => {
+        tbody.innerHTML += `
+          <tr>
+            <td><b>${m.name}</b></td>
+            <td>${m.phone}</td>
+            <td>${m.role}</td>
+            <td class="admin-col"><button class="btn btn-danger" onclick="deleteMember(${index})">Xóa</button></td>
+          </tr>
+        `;
+      });
+      if (typeof v6RefreshPayerLists === "function") v6RefreshPayerLists();
+    }
+
+    function addMember() {
+      if (sessionStorage.getItem('is_admin') !== 'true') return alert('Chức năng này chỉ dành cho Quản trị viên.');
+      let name = document.getElementById('member-name').value;
+      let phone = document.getElementById('member-phone').value;
+      let role = document.getElementById('member-role').value || "Thành viên";
+
+      if (!name) return alert("Vui lòng nhập họ tên!");
+
+      db.collection("trip_data").doc("members").get().then((doc) => {
+        let members = doc.exists && doc.data().list ? doc.data().list : [];
+        members.push({ name, phone, role });
+        db.collection("trip_data").doc("members").set({ list: members }).then(() => {
+          document.getElementById('member-name').value = '';
+          document.getElementById('member-phone').value = '';
+          document.getElementById('member-role').value = '';
         });
+      });
+    }
 
-        // Sự kiện Đổi mật khẩu
-        document.getElementById('formChangePassword').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const oldP = document.getElementById('inputOldPassword').value;
-            const newP = document.getElementById('inputNewPassword').value;
-            const confP = document.getElementById('inputConfirmPassword').value;
+    function deleteMember(index) {
+      if (sessionStorage.getItem('is_admin') !== 'true') return alert('Chức năng này chỉ dành cho Quản trị viên.');
+      db.collection("trip_data").doc("members").get().then((doc) => {
+        let members = doc.exists && doc.data().list ? doc.data().list : [];
+        members.splice(index, 1);
+        db.collection("trip_data").doc("members").set({ list: members });
+      });
+    }
 
-            if (newP !== confP) {
-                alert("Mật khẩu mới và xác nhận mật khẩu không khớp!");
-                return;
-            }
 
-            const success = await changeAdminPassword(oldP, newP);
-            if (success) {
-                document.getElementById('formChangePassword').reset();
-            }
+    /* =========================================================
+       V6 FINAL LOGIC
+       ========================================================= */
+    const V6_EXPENSE_COLLECTION = "trip_expenses";
+    let v6Expenses = [];
+    let v6EditingId = null;
+
+    const V6_CATS = ["Xăng","Lưu trú","Ăn uống","Vé tham quan","Quà lưu niệm","Vé đường bộ","Gửi xe"];
+
+    function v6IsAdmin(){
+      return sessionStorage.getItem('is_admin') === 'true';
+    }
+
+    function v6RequireAdmin(){
+      if(!v6IsAdmin()){
+        alert("Bạn đang ở chế độ Thành viên. Vui lòng đăng nhập Quản trị để thực hiện thao tác này.");
+        return false;
+      }
+      return true;
+    }
+
+    function v6Money(n){
+      return new Intl.NumberFormat('vi-VN', {
+        maximumFractionDigits: 0
+      }).format(Number(n)||0) + ' đ';
+    }
+
+    // Hiển thị số tiền theo chuẩn Việt Nam: 50000 -> 50.000
+    // Dữ liệu lưu Firestore vẫn là NUMBER nguyên, không lưu chuỗi "50.000".
+    function v6ParseMoney(value){
+      if (typeof value === 'number') return Math.round(value);
+      const digits = String(value ?? '').replace(/\D/g, '');
+      return digits ? Number(digits) : 0;
+    }
+
+    function v6FormatMoneyInput(input){
+      const n = v6ParseMoney(input.value);
+      input.value = n ? new Intl.NumberFormat('vi-VN', {
+        maximumFractionDigits: 0
+      }).format(n) : '';
+    }
+
+    function v6Esc(v){
+      return String(v ?? '').replace(/[&<>"']/g, c => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+      }[c]));
+    }
+
+    function v6Show(name, btn){
+      document.querySelectorAll('.v6-section').forEach(x=>x.classList.remove('active'));
+      document.getElementById('v6-'+name).classList.add('active');
+      document.querySelectorAll('.v6-nav button').forEach(x=>x.classList.remove('active'));
+      btn.classList.add('active');
+      if(name==='route') v6RenderRouteCopy();
+      if(name==='members') v6RenderMembersCopy();
+    }
+
+    function v6SyncRoleUI(){
+      const admin = v6IsAdmin();
+      document.getElementById('v6-role-badge').textContent = admin ? 'QUẢN TRỊ VIÊN' : 'THÀNH VIÊN · CHỈ XEM';
+      v6RenderExpenses();
+      // CSS already controls .admin-only; this refresh handles dynamic table actions.
+    }
+
+    function v6ListenExpenses(){
+      db.collection(V6_EXPENSE_COLLECTION)
+        .orderBy('date','asc')
+        .onSnapshot(snap=>{
+          v6Expenses = [];
+          snap.forEach(doc=>v6Expenses.push({id:doc.id,...doc.data()}));
+          const status=document.getElementById('v6-db-status');
+          if(status){status.textContent='● Firebase · Đã đồng bộ';status.style.color='#2f855a';}
+          v6RenderExpenses();
+        }, err=>{
+          // If an index/order issue occurs, fall back to the collection without orderBy.
+          console.error(err);
+          const status=document.getElementById('v6-db-status');
+          if(status){status.textContent='● Firebase · Lỗi kết nối';status.style.color='#c53030';}
+          db.collection(V6_EXPENSE_COLLECTION).onSnapshot(snap=>{
+            const status=document.getElementById('v6-db-status');
+            if(status){status.textContent='● Firebase · Đã đồng bộ';status.style.color='#2f855a';}
+            v6Expenses=[];
+            snap.forEach(doc=>v6Expenses.push({id:doc.id,...doc.data()}));
+            v6Expenses.sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+            v6RenderExpenses();
+          });
         });
+    }
 
-        // Khởi chạy ban đầu
-        updateAdminUI();
-    </script>
+    function v6RenderExpenses(){
+      const tbody=document.getElementById('v6-expense-list');
+      if(!tbody) return;
+
+      const total=v6Expenses.reduce((s,x)=>s+Number(x.amount||0),0);
+      document.getElementById('v6-cost-total').textContent=v6Money(total);
+      document.getElementById('v6-cost-total2').textContent=v6Money(total);
+      document.getElementById('v6-cost-count').textContent=v6Expenses.length;
+      document.getElementById('v6-cost-avg').textContent=v6Money(v6Expenses.length?total/v6Expenses.length:0);
+      document.getElementById('v6-cost-dayavg').textContent=v6Money(total/6);
+
+      const byCat={};
+      V6_CATS.forEach(c=>byCat[c]=0);
+      v6Expenses.forEach(x=>{ if(byCat[x.category]!==undefined) byCat[x.category]+=Number(x.amount||0); });
+
+      const max=Math.max(...Object.values(byCat),1);
+      document.getElementById('v6-cost-cats').innerHTML=V6_CATS.map(c=>`
+        <div class="v6-cat-row">
+          <div style="min-width:105px"><b>${v6Esc(c)}</b><div class="v6-bar"><i style="width:${byCat[c]/max*100}%"></i></div></div>
+          <b>${v6Money(byCat[c])}</b>
+        </div>`).join('');
+
+      if(!v6Expenses.length){
+        tbody.innerHTML='<tr><td colspan="6"><div class="v6-empty">Chưa có khoản chi thực tế nào.</div></td></tr>';
+        return;
+      }
+
+      tbody.innerHTML=v6Expenses.map(x=>`
+        <tr>
+          <td>${v6Esc(x.date||'')}</td>
+          <td><b>${v6Esc(x.category||'')}</b></td>
+          <td>${v6Esc(x.description||'')}</td>
+          <td>${v6Esc(x.payer||'')}</td>
+          <td><b>${v6Money(x.amount)}</b></td>
+          <td class="admin-col">
+            ${v6IsAdmin()?`<div class="v6-actions">
+              <button class="v6-mini v6-edit" onclick="v6OpenEdit('${x.id}')">Sửa</button>
+              <button class="v6-mini v6-del" onclick="v6DeleteExpense('${x.id}')">Xóa</button>
+            </div>`:''}
+          </td>
+        </tr>`).join('');
+    }
+
+    function v6SaveExpense(){
+      if(!v6RequireAdmin()) return;
+      const date=document.getElementById('v6-exp-date').value;
+      const category=document.getElementById('v6-exp-cat').value;
+      const description=document.getElementById('v6-exp-desc').value.trim();
+      const amount=v6ParseMoney(document.getElementById('v6-exp-amount').value);
+      const payer=document.getElementById('v6-exp-payer').value.trim();
+
+      if(!date||!category||!description||!amount||amount<=0||!payer){
+        alert("Vui lòng nhập đầy đủ ngày, khoản mục, nội dung, số tiền và người trả.");
+        return;
+      }
+
+      db.collection(V6_EXPENSE_COLLECTION).add({
+        date, category, description, amount, payer,
+        isDemo: false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(()=>{
+        document.getElementById('v6-exp-desc').value='';
+        document.getElementById('v6-exp-amount').value='';
+        document.getElementById('v6-exp-payer').value='';
+        alert("Đã lưu khoản chi vào Firebase Firestore.");
+      }).catch(e=>alert("Không thể lưu khoản chi: "+e.message));
+    }
+
+    function v6OpenEdit(id){
+      if(!v6RequireAdmin()) return;
+      const x=v6Expenses.find(a=>a.id===id);
+      if(!x) return;
+      v6EditingId=id;
+      document.getElementById('v6-edit-id').value=id;
+      document.getElementById('v6-edit-date').value=x.date||'';
+      document.getElementById('v6-edit-cat').value=x.category||V6_CATS[0];
+      document.getElementById('v6-edit-desc').value=x.description||'';
+      document.getElementById('v6-edit-amount').value=x.amount||'';
+      document.getElementById('v6-edit-payer').value=x.payer||'';
+      document.getElementById('v6-expense-modal').classList.add('show');
+    }
+
+    function v6CloseModal(){
+      document.getElementById('v6-expense-modal').classList.remove('show');
+      v6EditingId=null;
+    }
+
+    function v6UpdateExpense(){
+      if(!v6RequireAdmin()||!v6EditingId) return;
+      const data={
+        date:document.getElementById('v6-edit-date').value,
+        category:document.getElementById('v6-edit-cat').value,
+        description:document.getElementById('v6-edit-desc').value.trim(),
+        amount:v6ParseMoney(document.getElementById('v6-edit-amount').value),
+        payer:document.getElementById('v6-edit-payer').value.trim(),
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+      };
+      if(!data.date||!data.description||!data.amount||!data.payer){
+        alert("Vui lòng nhập đầy đủ thông tin.");
+        return;
+      }
+      db.collection(V6_EXPENSE_COLLECTION).doc(v6EditingId).update(data)
+        .then(v6CloseModal)
+        .catch(e=>alert("Không thể cập nhật: "+e.message));
+    }
+
+    function v6DeleteExpense(id){
+      if(!v6RequireAdmin()) return;
+      if(!confirm("Xóa khoản chi này khỏi database?")) return;
+      db.collection(V6_EXPENSE_COLLECTION).doc(id).delete()
+        .catch(e=>alert("Không thể xóa: "+e.message));
+    }
+
+    function v6ClearDemoExpenses(){
+      if(!v6RequireAdmin()) return;
+      const demoExpenses = v6Expenses.filter(x => x.isDemo === true);
+      if(!demoExpenses.length){
+        alert("Không có chi phí mẫu nào để xóa.");
+        return;
+      }
+      if(!confirm("Xóa các khoản chi MẪU do quản trị tạo? Chi phí thực tế sẽ không bị ảnh hưởng.")) return;
+
+      Promise.all(
+        demoExpenses.map(x =>
+          db.collection(V6_EXPENSE_COLLECTION).doc(x.id).delete()
+        )
+      )
+      .then(()=>alert("Đã xóa chi phí mẫu. Các khoản chi thực tế vẫn được giữ nguyên."))
+      .catch(e=>alert("Có lỗi khi xóa chi phí mẫu: "+e.message));
+    }
+
+    function v6SeedCostDemo(){
+      if(!v6RequireAdmin()) return;
+      const demo=[
+        ['2026-08-28','Xăng','Đổ xăng xe 01',1200000,'Duẩn'],
+        ['2026-08-28','Lưu trú','Khách sạn Thanh Hóa',1600000,'Giang'],
+        ['2026-08-29','Ăn uống','Ăn trưa Đồng Hới',950000,'Duẩn'],
+        ['2026-08-29','Vé đường bộ','Phí cao tốc',350000,'Duẩn'],
+        ['2026-08-30','Vé tham quan','Vé tham quan Hội An',700000,'Giang'],
+        ['2026-08-30','Gửi xe','Gửi xe Hội An',120000,'Duẩn']
+      ];
+      const batch=db.batch();
+      demo.forEach(d=>{
+        const ref=db.collection(V6_EXPENSE_COLLECTION).doc();
+        batch.set(ref,{date:d[0],category:d[1],description:d[2],amount:d[3],payer:d[4],isDemo:true,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+      });
+      batch.commit().then(()=>alert("Đã tạo dữ liệu mẫu.")).catch(e=>alert(e.message));
+    }
+
+    function v6RenderRouteCopy(){
+      const source=document.getElementById('route-points-list');
+      const target=document.getElementById('v6-route-copy');
+      if(!source||!target) return;
+      target.innerHTML='<div class="v6-admin-note">Bản đồ chi tiết vẫn nằm ở khu vực Lộ trình gốc phía trên. Danh sách bên dưới là bản xem nhanh.</div>'+source.closest('.table-container').outerHTML;
+      const copy=target.querySelector('tbody');
+      if(copy) copy.id='v6-route-copy-tbody';
+    }
+
+    function v6GetMemberNames(){
+      const names = [];
+      const source = document.getElementById('member-list');
+      if(source){
+        source.querySelectorAll('tr').forEach(row=>{
+          const cell = row.querySelector('td');
+          if(cell){
+            const name = cell.textContent.trim().replace(/\s+/g,' ');
+            if(name && !names.includes(name)) names.push(name);
+          }
+        });
+      }
+      return names;
+    }
+
+    function v6RefreshPayerLists(){
+      const names = v6GetMemberNames();
+      const html = names.map(name=>`<option value="${v6Esc(name)}"></option>`).join('');
+      const list1 = document.getElementById('v6-member-payer-list');
+      const list2 = document.getElementById('v6-member-payer-edit-list');
+      if(list1) list1.innerHTML = html;
+      if(list2) list2.innerHTML = html;
+    }
+
+    function v6RenderMembersCopy(){
+      const source=document.getElementById('member-list');
+      const target=document.getElementById('v6-members-copy');
+      if(!source||!target) return;
+      const rows=[...source.querySelectorAll('tr')];
+      target.innerHTML=rows.length
+        ? `<div class="table-container"><table class="v6-table"><thead><tr><th>Họ tên</th><th>SĐT</th><th>Vai trò</th></tr></thead><tbody>${rows.map(r=>{
+            const c=r.querySelectorAll('td');
+            return `<tr><td>${c[0]?.innerHTML||''}</td><td>${c[1]?.innerHTML||''}</td><td>${c[2]?.innerHTML||''}</td></tr>`;
+          }).join('')}</tbody></table></div>`
+        : '<div class="v6-empty">Chưa có thành viên.</div>';
+      document.getElementById('v6-member-count').textContent=rows.length;
+      v6RefreshPayerLists();
+    }
+
+    // Patch the existing role checker so V6 updates instantly.
+    const v6OriginalCheckAdminStatus = checkAdminStatus;
+    checkAdminStatus = function(){
+      v6OriginalCheckAdminStatus();
+      v6SyncRoleUI();
+    };
+
+    document.addEventListener('DOMContentLoaded',function(){
+      v6ListenExpenses();
+      v6SyncRoleUI();
+
+      const originalListen = listenFirebaseData;
+      // Existing listener remains authoritative for original modules.
+      setTimeout(()=>{v6RenderMembersCopy();v6RenderRouteCopy();v6RefreshPayerLists();},1200);
+
+      const costDate=document.getElementById('v6-exp-date');
+      if(costDate) costDate.value='2026-08-28';
+    });
+
+  </script>
 </body>
 </html>
