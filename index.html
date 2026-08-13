@@ -292,15 +292,17 @@
 
   <script>
     // ==========================================
-    // CẤU HÌNH FIREBASE (Dữ liệu online thời gian thực)
+    // CẤU HÌNH FIREBASE (Đã kết nối hanhtrinhdulich)
     // ==========================================
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyCVuCRzrkhCGqQCZuXYcnHovAu0dgy0Fao",
+      authDomain: "hanhtrinhdulich.firebaseapp.com",
+      databaseURL: "https://hanhtrinhdulich-default-rtdb.firebaseio.com",
+      projectId: "hanhtrinhdulich",
+      storageBucket: "hanhtrinhdulich.firebasestorage.app",
+      messagingSenderId: "618555116660",
+      appId: "1:618555116660:web:881d55194389af106a5521",
+      measurementId: "G-6PJ7PGX2GZ"
     };
 
     // Khởi tạo Firebase
@@ -402,7 +404,6 @@
         if (doc.exists && doc.data().list) {
           points = doc.data().list;
         } else {
-          // Nếu chưa có trên cloud, khởi tạo mặc định lên cloud
           db.collection("trip_data").doc("points").set({ list: defaultPoints });
         }
         renderPointsTable(points, null);
