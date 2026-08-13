@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
   <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
-  <!-- Firebase App & Firestore CDN (Compat Version để code chạy mượt mà, ổn định) -->
+  <!-- Firebase App & Firestore CDN (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -55,7 +55,6 @@
     
     .custom-div-icon, .leg-badge-icon { background: transparent; border: none; }
 
-    /* Khung chứa bảng hỗ trợ cuộn mượt trên mobile */
     .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
     table { width: 100%; border-collapse: collapse; min-width: 500px; }
     th, td { border: 1px solid #e2e8f0; padding: 8px 6px; text-align: left; font-size: 12px; line-height: 1.4; }
@@ -82,7 +81,6 @@
     .chat-msg .time { font-size: 10px; color: #a0aec0; margin-left: 4px; }
     .chat-msg .content { margin-top: 2px; color: #2d3748; background: #edf2f7; display: inline-block; padding: 5px 10px; border-radius: 6px; word-break: break-word; }
 
-    /* Media query cho Desktop/Tablet */
     @media (min-width: 600px) {
       body { padding: 15px; }
       .container { padding: 25px; border-radius: 16px; }
@@ -149,7 +147,6 @@
         <div class="summary-item">Thời Gian Lái Ước Tính: <span id="total-time">0 giờ</span></div>
       </div>
 
-      <!-- Form nhập dành riêng Admin -->
       <div class="form-grid admin-only">
         <input type="text" id="point-name" placeholder="Tên điểm đến mới">
         <input type="text" id="point-desc" placeholder="Mô tả / Ghi chú">
@@ -292,14 +289,13 @@
 
   <script>
     // ==========================================
-    // CẤU HÌNH FIREBASE (Đã kết nối hanhtrinhdulich)
+    // CẤU HÌNH FIREBASE (Dự án: AppDuLich)
     // ==========================================
     const firebaseConfig = {
       apiKey: "AIzaSyCVuCRzrkhCGqQCZuXYcnHovAu0dgy0Fao",
-      authDomain: "hanhtrinhdulich.firebaseapp.com",
-      databaseURL: "https://hanhtrinhdulich-default-rtdb.firebaseio.com",
-      projectId: "hanhtrinhdulich",
-      storageBucket: "hanhtrinhdulich.firebasestorage.app",
+      authDomain: "appdulich-d2203.firebaseapp.com",
+      projectId: "appdulich-d2203",
+      storageBucket: "appdulich-d2203.firebasestorage.app",
       messagingSenderId: "618555116660",
       appId: "1:618555116660:web:881d55194389af106a5521",
       measurementId: "G-6PJ7PGX2GZ"
@@ -398,7 +394,6 @@
     // ĐỒNG BỘ DỮ LIỆU THỜI GIAN THỰC TỪ FIRESTORE
     // ==========================================
     function listenFirebaseData() {
-      // 1. Lắng nghe thay đổi Lộ trình điểm dừng
       db.collection("trip_data").doc("points").onSnapshot((doc) => {
         let points = defaultPoints;
         if (doc.exists && doc.data().list) {
@@ -410,7 +405,6 @@
         renderRoadRouting(points);
       });
 
-      // 2. Lắng nghe thay đổi Thành viên
       db.collection("trip_data").doc("members").onSnapshot((doc) => {
         let members = [{ name: "Nguyễn Tiến Duẩn", phone: "098x xxx xxx", role: "Trưởng đoàn / Lái chính" }];
         if (doc.exists && doc.data().list) {
@@ -421,7 +415,6 @@
         renderMembers(members);
       });
 
-      // 3. Lắng nghe thay đổi Tin nhắn Chat
       db.collection("trip_data").doc("chat").onSnapshot((doc) => {
         let messages = [{ user: "HỆ THỐNG", text: "Chào mừng cả đoàn đến với kênh trao đổi chuyến đi 2026!", time: "10:00" }];
         if (doc.exists && doc.data().list) {
