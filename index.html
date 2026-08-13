@@ -73,13 +73,22 @@
     body.is-admin .admin-col { display: table-cell !important; }
     body:not(.is-admin) .admin-col { display: none !important; }
 
-    /* Khung Chat Online */
+    /* Khung Chat Online Phong cách Messenger/Zalo */
     .chat-box { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; }
-    .chat-messages { height: 200px; overflow-y: auto; background: white; border: 1px solid #cbd5e0; border-radius: 6px; padding: 10px; margin-bottom: 10px; }
-    .chat-msg { margin-bottom: 8px; font-size: 12px; }
-    .chat-msg .sender { font-weight: bold; color: #2b6cb0; }
-    .chat-msg .time { font-size: 10px; color: #a0aec0; margin-left: 4px; }
-    .chat-msg .content { margin-top: 2px; color: #2d3748; background: #edf2f7; display: inline-block; padding: 5px 10px; border-radius: 6px; word-break: break-word; }
+    .chat-messages { height: 260px; overflow-y: auto; background: white; border: 1px solid #cbd5e0; border-radius: 6px; padding: 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
+    
+    .chat-msg { display: flex; flex-direction: column; max-width: 75%; }
+    .chat-msg.mine { align-self: flex-end; align-items: flex-end; }
+    .chat-msg.other { align-self: flex-start; align-items: flex-start; }
+    .chat-msg.system { align-self: center; align-items: center; max-width: 90%; width: 100%; }
+
+    .chat-msg .msg-info { font-size: 10px; color: #a0aec0; margin-bottom: 2px; }
+    .chat-msg.mine .msg-info { text-align: right; }
+    
+    .chat-msg .bubble { padding: 8px 12px; border-radius: 12px; font-size: 13px; word-break: break-word; line-height: 1.4; }
+    .chat-msg.mine .bubble { background: #007bff; color: white; border-top-right-radius: 2px; }
+    .chat-msg.other .bubble { background: #edf2f7; color: #2d3748; border-top-left-radius: 2px; }
+    .chat-msg.system .bubble { background: #e2e8f0; color: #4a5568; font-style: italic; text-align: center; border-radius: 6px; font-size: 12px; }
 
     @media (min-width: 600px) {
       body { padding: 15px; }
@@ -212,7 +221,7 @@
         <div class="chat-messages" id="chat-messages"></div>
         <div class="form-grid chat-form-grid" style="gap: 6px;">
           <input type="text" id="chat-user" placeholder="HỌ VÀ TÊN (IN HOA)" style="text-transform: uppercase;">
-          <input type="text" id="chat-text" placeholder="Nhập tin nhắn...">
+          <input type="text" id="chat-text" placeholder="Nhập tin nhắn..." onkeypress="if(event.key === 'Enter') sendChatMessage()">
           <button class="btn btn-success" onclick="sendChatMessage()">Gửi 📤</button>
         </div>
       </div>
@@ -334,8 +343,15 @@
       initMap();
       listenFirebaseData();
 
+      // Điền sẵn tên nếu đã lưu trên trình duyệt
+      const savedName = localStorage.getItem('chat_my_name');
+      if (savedName) {
+        document.getElementById('chat-user').value = savedName;
+      }
+
       document.getElementById('chat-user').addEventListener('input', function() {
         this.value = this.value.toUpperCase();
+        localStorage.setItem('chat_my_name', this.value.trim());
       });
     });
 
@@ -428,12 +444,23 @@
 
     function renderChatMessages(messages) {
       const chatBox = document.getElementById('chat-messages');
+      const myName = (localStorage.getItem('chat_my_name') || '').trim().toUpperCase();
       chatBox.innerHTML = '';
+
       messages.forEach(msg => {
+        let msgUserUpper = (msg.user || '').trim().toUpperCase();
+        let msgType = 'other';
+
+        if (msgUserUpper === 'HỆ THỐNG') {
+          msgType = 'system';
+        } else if (myName && msgUserUpper === myName) {
+          msgType = 'mine';
+        }
+
         chatBox.innerHTML += `
-          <div class="chat-msg">
-            <span class="sender">${msg.user}</span> <span class="time">${msg.time}</span>
-            <div><span class="content">${msg.text}</span></div>
+          <div class="chat-msg ${msgType}">
+            <div class="msg-info"><b>${msg.user}</b> • ${msg.time}</div>
+            <div class="bubble">${msg.text}</div>
           </div>
         `;
       });
@@ -446,6 +473,8 @@
 
       if (!userInput) return alert("Vui lòng nhập Họ tên!");
       if (!textInput) return alert("Vui lòng nhập nội dung nhắn!");
+
+      localStorage.setItem('chat_my_name', userInput);
 
       const now = new Date();
       const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
@@ -512,7 +541,6 @@
           let p = points[i] || { name: `Điểm ${i+1}`, desc: "" };
           let customIcon;
 
-          // Kiểm tra nếu điểm đầu và điểm cuối trùng tọa độ thì dịch chuyển hiển thị sang 2 bên để không bị che khuất
           let isSameLocation = (points.length > 1 && points[0].lat === points[points.length-1].lat && points[0].lng === points[points.length-1].lng);
           let transformStyle = "";
           if (isSameLocation) {
@@ -524,7 +552,6 @@
           }
 
           if (i === 0) {
-            // Điểm 1: Màu Xanh lá cây, icon hình tròn (32px)
             customIcon = L.divIcon({
               className: 'custom-div-icon',
               html: `<div style="background-color:#28a745;color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);${transformStyle}" title="Xuất phát">${i + 1}</div>`,
@@ -532,7 +559,6 @@
               iconAnchor: [16, 16]
             });
           } else if (i === points.length - 1) {
-            // Điểm cuối / Điểm 7: Màu Tím, icon hình tròn (32px)
             customIcon = L.divIcon({
               className: 'custom-div-icon',
               html: `<div style="background-color:#6f42c1;color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);${transformStyle}" title="Về đích">${i + 1}</div>`,
@@ -540,7 +566,6 @@
               iconAnchor: [16, 16]
             });
           } else {
-            // Các điểm trung gian khác: Hình tròn màu Xanh dương (32px)
             customIcon = L.divIcon({
               className: 'custom-div-icon',
               html: `<div style="background-color:#007bff;color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);">${i + 1}</div>`,
