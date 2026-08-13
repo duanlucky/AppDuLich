@@ -513,28 +513,28 @@
           let customIcon;
 
           if (i === 0) {
-            // Điểm 1: Màu Xanh lá cây (Xuất phát)
+            // Điểm 1: Màu Xanh lá cây, icon hình tròn to hơn chút (32px)
             customIcon = L.divIcon({
               className: 'custom-div-icon',
-              html: `<div style="background:#28a745;color:white;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;border:2px solid white;box-shadow:0 2px 5px rgba(0,0,0,0.3);" title="Xuất phát">🏁</div>`,
-              iconSize: [30, 30],
-              iconAnchor: [15, 15]
+              html: `<div style="background-color:#28a745;color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);" title="Xuất phát">${i + 1}</div>`,
+              iconSize: [32, 32],
+              iconAnchor: [16, 16]
             });
           } else if (i === points.length - 1) {
-            // Điểm cuối / Điểm 7: Màu Tím (Về đích)
+            // Điểm cuối / Điểm 7: Màu Tím, icon hình tròn to hơn chút (32px)
             customIcon = L.divIcon({
               className: 'custom-div-icon',
-              html: `<div style="background:#6f42c1;color:white;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;border:2px solid white;box-shadow:0 2px 5px rgba(0,0,0,0.3);" title="Về đích">🏁</div>`,
-              iconSize: [30, 30],
-              iconAnchor: [15, 15]
+              html: `<div style="background-color:#6f42c1;color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);" title="Về đích">${i + 1}</div>`,
+              iconSize: [32, 32],
+              iconAnchor: [16, 16]
             });
           } else {
-            // Các điểm trung gian khác: Hình tròn màu Xanh dương
+            // Các điểm trung gian khác: Hình tròn màu Xanh dương (32px)
             customIcon = L.divIcon({
               className: 'custom-div-icon',
-              html: `<div style="background-color:#007bff;color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;border:2px solid white;box-shadow:0 2px 5px rgba(0,0,0,0.3);">${i + 1}</div>`,
-              iconSize: [26, 26],
-              iconAnchor: [13, 13]
+              html: `<div style="background-color:#007bff;color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);">${i + 1}</div>`,
+              iconSize: [32, 32],
+              iconAnchor: [16, 16]
             });
           }
 
