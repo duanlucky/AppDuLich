@@ -447,7 +447,9 @@
             </select>
             <input type="text" id="v6-exp-desc" placeholder="Nội dung khoản chi thực tế">
             <input type="text" id="v6-exp-amount" inputmode="numeric" autocomplete="off" title="Ví dụ: 1.500.000" placeholder="Số tiền (VNĐ)" oninput="v6FormatMoneyInput(this)">
-            <input type="text" id="v6-exp-payer" placeholder="Người trả / gia đình">
+            <input type="text" id="v6-exp-payer" list="v6-member-payer-list"
+              placeholder="Người trả / gia đình — chọn hoặc tự nhập">
+            <datalist id="v6-member-payer-list"></datalist>
           </div>
           <button class="btn btn-success" style="margin-top:8px" onclick="v6SaveExpense()">💾 Lưu khoản chi</button>
         </div>
@@ -481,7 +483,9 @@
           </select>
           <input type="text" id="v6-edit-desc" placeholder="Nội dung">
           <input type="text" id="v6-edit-amount" inputmode="numeric" autocomplete="off" title="Ví dụ: 1.500.000" placeholder="Số tiền" oninput="v6FormatMoneyInput(this)">
-          <input type="text" id="v6-edit-payer" placeholder="Người trả / gia đình">
+          <input type="text" id="v6-edit-payer" list="v6-member-payer-edit-list"
+            placeholder="Người trả / gia đình — chọn hoặc tự nhập">
+          <datalist id="v6-member-payer-edit-list"></datalist>
         </div>
         <button class="btn btn-success" style="margin-top:10px" onclick="v6UpdateExpense()">Cập nhật</button>
       </div>
@@ -921,6 +925,7 @@
           </tr>
         `;
       });
+      if (typeof v6RefreshPayerLists === "function") v6RefreshPayerLists();
     }
 
     function addMember() {
@@ -1199,6 +1204,30 @@
       if(copy) copy.id='v6-route-copy-tbody';
     }
 
+    function v6GetMemberNames(){
+      const names = [];
+      const source = document.getElementById('member-list');
+      if(source){
+        source.querySelectorAll('tr').forEach(row=>{
+          const cell = row.querySelector('td');
+          if(cell){
+            const name = cell.textContent.trim().replace(/\s+/g,' ');
+            if(name && !names.includes(name)) names.push(name);
+          }
+        });
+      }
+      return names;
+    }
+
+    function v6RefreshPayerLists(){
+      const names = v6GetMemberNames();
+      const html = names.map(name=>`<option value="${v6Esc(name)}"></option>`).join('');
+      const list1 = document.getElementById('v6-member-payer-list');
+      const list2 = document.getElementById('v6-member-payer-edit-list');
+      if(list1) list1.innerHTML = html;
+      if(list2) list2.innerHTML = html;
+    }
+
     function v6RenderMembersCopy(){
       const source=document.getElementById('member-list');
       const target=document.getElementById('v6-members-copy');
@@ -1211,6 +1240,7 @@
           }).join('')}</tbody></table></div>`
         : '<div class="v6-empty">Chưa có thành viên.</div>';
       document.getElementById('v6-member-count').textContent=rows.length;
+      v6RefreshPayerLists();
     }
 
     // Patch the existing role checker so V6 updates instantly.
@@ -1226,7 +1256,7 @@
 
       const originalListen = listenFirebaseData;
       // Existing listener remains authoritative for original modules.
-      setTimeout(()=>{v6RenderMembersCopy();v6RenderRouteCopy();},1200);
+      setTimeout(()=>{v6RenderMembersCopy();v6RenderRouteCopy();v6RefreshPayerLists();},1200);
 
       const costDate=document.getElementById('v6-exp-date');
       if(costDate) costDate.value='2026-08-28';
