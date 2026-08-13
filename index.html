@@ -13,6 +13,10 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
   <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
+  <!-- Firebase App & Firestore CDN (Compat Version để code chạy mượt mà, ổn định) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
     body { background-color: #f4f6f8; padding: 8px; color: #333; -webkit-tap-highlight-color: transparent; }
@@ -95,7 +99,6 @@
       .chat-form-grid { grid-template-columns: 1fr 2fr auto !important; }
     }
 
-    /* Ẩn cột tọa độ trên màn hình siêu nhỏ để tối ưu không gian */
     @media (max-width: 480px) {
       .col-coord { display: none; }
     }
@@ -288,6 +291,22 @@
   </div>
 
   <script>
+    // ==========================================
+    // CẤU HÌNH FIREBASE (Dữ liệu online thời gian thực)
+    // ==========================================
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    // Khởi tạo Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
     let map = null;
     let routingControl = null;
     let legBadgeMarkers = [];
@@ -315,8 +334,7 @@
     document.addEventListener('DOMContentLoaded', function() {
       checkAdminStatus();
       initMap();
-      loadMembers();
-      loadChatMessages();
+      listenFirebaseData();
 
       document.getElementById('chat-user').addEventListener('input', function() {
         this.value = this.value.toUpperCase();
@@ -350,9 +368,6 @@
       if (pwd === getAdminPassword()) {
         sessionStorage.setItem('is_admin', 'true');
         checkAdminStatus();
-        let points = JSON.parse(localStorage.getItem('trip_points')) || defaultPoints;
-        renderPointsTable(points, null);
-        renderMembers(JSON.parse(localStorage.getItem('trip_members')) || []);
         alert("Đăng nhập quản trị thành công!");
       } else if (pwd !== null) {
         alert("Mật khẩu không chính xác!");
@@ -362,9 +377,6 @@
     function logoutAdmin() {
       sessionStorage.removeItem('is_admin');
       checkAdminStatus();
-      let points = JSON.parse(localStorage.getItem('trip_points')) || defaultPoints;
-      renderPointsTable(points, null);
-      renderMembers(JSON.parse(localStorage.getItem('trip_members')) || []);
     }
 
     function changeAdminPassword() {
@@ -380,10 +392,47 @@
       }
     }
 
-    function loadChatMessages() {
-      const messages = JSON.parse(localStorage.getItem('trip_chat')) || [
-        { user: "HỆ THỐNG", text: "Chào mừng cả đoàn đến với kênh trao đổi chuyến đi 2026!", time: "10:00" }
-      ];
+    // ==========================================
+    // ĐỒNG BỘ DỮ LIỆU THỜI GIAN THỰC TỪ FIRESTORE
+    // ==========================================
+    function listenFirebaseData() {
+      // 1. Lắng nghe thay đổi Lộ trình điểm dừng
+      db.collection("trip_data").doc("points").onSnapshot((doc) => {
+        let points = defaultPoints;
+        if (doc.exists && doc.data().list) {
+          points = doc.data().list;
+        } else {
+          // Nếu chưa có trên cloud, khởi tạo mặc định lên cloud
+          db.collection("trip_data").doc("points").set({ list: defaultPoints });
+        }
+        renderPointsTable(points, null);
+        renderRoadRouting(points);
+      });
+
+      // 2. Lắng nghe thay đổi Thành viên
+      db.collection("trip_data").doc("members").onSnapshot((doc) => {
+        let members = [{ name: "Nguyễn Tiến Duẩn", phone: "098x xxx xxx", role: "Trưởng đoàn / Lái chính" }];
+        if (doc.exists && doc.data().list) {
+          members = doc.data().list;
+        } else {
+          db.collection("trip_data").doc("members").set({ list: members });
+        }
+        renderMembers(members);
+      });
+
+      // 3. Lắng nghe thay đổi Tin nhắn Chat
+      db.collection("trip_data").doc("chat").onSnapshot((doc) => {
+        let messages = [{ user: "HỆ THỐNG", text: "Chào mừng cả đoàn đến với kênh trao đổi chuyến đi 2026!", time: "10:00" }];
+        if (doc.exists && doc.data().list) {
+          messages = doc.data().list;
+        } else {
+          db.collection("trip_data").doc("chat").set({ list: messages });
+        }
+        renderChatMessages(messages);
+      });
+    }
+
+    function renderChatMessages(messages) {
       const chatBox = document.getElementById('chat-messages');
       chatBox.innerHTML = '';
       messages.forEach(msg => {
@@ -407,12 +456,13 @@
       const now = new Date();
       const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
-      let messages = JSON.parse(localStorage.getItem('trip_chat')) || [];
-      messages.push({ user: userInput, text: textInput, time: timeStr });
-      localStorage.setItem('trip_chat', JSON.stringify(messages));
-
-      document.getElementById('chat-text').value = '';
-      loadChatMessages();
+      db.collection("trip_data").doc("chat").get().then((doc) => {
+        let messages = doc.exists && doc.data().list ? doc.data().list : [];
+        messages.push({ user: userInput, text: textInput, time: timeStr });
+        db.collection("trip_data").doc("chat").set({ list: messages }).then(() => {
+          document.getElementById('chat-text').value = '';
+        });
+      });
     }
 
     function calcDistanceKm(lat1, lon1, lat2, lon2) {
@@ -434,12 +484,6 @@
             attribution: '© OpenStreetMap'
           }).addTo(map);
         }
-
-        let points = JSON.parse(localStorage.getItem('trip_points')) || defaultPoints;
-        localStorage.setItem('trip_points', JSON.stringify(points));
-
-        renderPointsTable(points, null);
-        renderRoadRouting(points);
       } catch (err) {
         console.error("Lỗi khởi tạo bản đồ:", err);
       }
@@ -594,39 +638,32 @@
         return alert("Vui lòng nhập Tên điểm, Vĩ độ và Kinh độ!");
       }
 
-      let points = JSON.parse(localStorage.getItem('trip_points')) || defaultPoints;
-      points.splice(points.length - 1, 0, { name, lat, lng, desc });
-      
-      localStorage.setItem('trip_points', JSON.stringify(points));
-      renderPointsTable(points, null);
-      renderRoadRouting(points);
-
-      document.getElementById('point-name').value = '';
-      document.getElementById('point-desc').value = '';
-      document.getElementById('point-lat').value = '';
-      document.getElementById('point-lng').value = '';
+      db.collection("trip_data").doc("points").get().then((doc) => {
+        let points = doc.exists && doc.data().list ? doc.data().list : defaultPoints;
+        points.splice(points.length - 1, 0, { name, lat, lng, desc });
+        
+        db.collection("trip_data").doc("points").set({ list: points }).then(() => {
+          document.getElementById('point-name').value = '';
+          document.getElementById('point-desc').value = '';
+          document.getElementById('point-lat').value = '';
+          document.getElementById('point-lng').value = '';
+        });
+      });
     }
 
     function deletePoint(index) {
-      let points = JSON.parse(localStorage.getItem('trip_points')) || defaultPoints;
-      if (points.length <= 2) return alert("Lộ trình cần ít nhất 2 điểm!");
-      points.splice(index, 1);
-      localStorage.setItem('trip_points', JSON.stringify(points));
-      renderPointsTable(points, null);
-      renderRoadRouting(points);
+      db.collection("trip_data").doc("points").get().then((doc) => {
+        let points = doc.exists && doc.data().list ? doc.data().list : defaultPoints;
+        if (points.length <= 2) return alert("Lộ trình cần ít nhất 2 điểm!");
+        points.splice(index, 1);
+        db.collection("trip_data").doc("points").set({ list: points });
+      });
     }
 
     function resetDefaultPoints() {
-      localStorage.setItem('trip_points', JSON.stringify(defaultPoints));
-      renderPointsTable(defaultPoints, null);
-      renderRoadRouting(defaultPoints);
-    }
-
-    function loadMembers() {
-      let members = JSON.parse(localStorage.getItem('trip_members')) || [
-        { name: "Nguyễn Tiến Duẩn", phone: "098x xxx xxx", role: "Trưởng đoàn / Lái chính" }
-      ];
-      renderMembers(members);
+      if (confirm("Bạn có chắc chắn muốn khôi phục lại 7 điểm chuẩn ban đầu?")) {
+        db.collection("trip_data").doc("points").set({ list: defaultPoints });
+      }
     }
 
     function renderMembers(members) {
@@ -651,22 +688,23 @@
 
       if (!name) return alert("Vui lòng nhập họ tên!");
 
-      let members = JSON.parse(localStorage.getItem('trip_members')) || [];
-      members.push({ name, phone, role });
-      localStorage.setItem('trip_members', JSON.stringify(members));
-
-      renderMembers(members);
-
-      document.getElementById('member-name').value = '';
-      document.getElementById('member-phone').value = '';
-      document.getElementById('member-role').value = '';
+      db.collection("trip_data").doc("members").get().then((doc) => {
+        let members = doc.exists && doc.data().list ? doc.data().list : [];
+        members.push({ name, phone, role });
+        db.collection("trip_data").doc("members").set({ list: members }).then(() => {
+          document.getElementById('member-name').value = '';
+          document.getElementById('member-phone').value = '';
+          document.getElementById('member-role').value = '';
+        });
+      });
     }
 
     function deleteMember(index) {
-      let members = JSON.parse(localStorage.getItem('trip_members')) || [];
-      members.splice(index, 1);
-      localStorage.setItem('trip_members', JSON.stringify(members));
-      renderMembers(members);
+      db.collection("trip_data").doc("members").get().then((doc) => {
+        let members = doc.exists && doc.data().list ? doc.data().list : [];
+        members.splice(index, 1);
+        db.collection("trip_data").doc("members").set({ list: members });
+      });
     }
   </script>
 </body>
