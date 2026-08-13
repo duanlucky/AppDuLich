@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Hành Trình Du Lịch Khứ Hồi 2026 (28/08 - 02/09/2026)</title>
   
   <!-- Leaflet CSS & JS -->
@@ -14,55 +14,56 @@
   <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #eef2f5; padding: 15px; color: #333; }
-    .container { max-width: 980px; margin: 0 auto; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: #f4f6f8; padding: 8px; color: #333; -webkit-tap-highlight-color: transparent; }
+    .container { max-width: 980px; margin: 0 auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     
-    .header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #007bff; padding-bottom: 15px; }
-    .header h1 { color: #1a365d; font-size: 24px; margin-bottom: 8px; }
-    .header p { color: #4a5568; font-size: 14px; font-weight: 500; }
+    .header { text-align: center; margin-bottom: 18px; border-bottom: 2px solid #007bff; padding-bottom: 12px; }
+    .header h1 { color: #1a365d; font-size: 20px; margin-bottom: 6px; line-height: 1.3; }
+    .header p { color: #4a5568; font-size: 13px; font-weight: 500; }
     
     /* Thanh trạng thái đăng nhập */
-    .admin-bar { display: flex; justify-content: space-between; align-items: center; background: #edf2f7; padding: 12px 18px; border-radius: 10px; margin-bottom: 20px; font-size: 14px; }
-    .badge-role { font-weight: 700; padding: 4px 10px; border-radius: 6px; }
+    .admin-bar { display: flex; flex-direction: column; gap: 10px; background: #edf2f7; padding: 10px 12px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; text-align: center; }
+    .admin-bar-btns { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; width: 100%; }
+    .badge-role { font-weight: 700; padding: 4px 8px; border-radius: 6px; display: inline-block; }
     .role-user { background: #e2e8f0; color: #4a5568; }
     .role-admin { background: #c53030; color: white; }
 
-    .card { background: #ffffff; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
-    .card h2 { color: #2b6cb0; font-size: 18px; margin-bottom: 15px; }
+    .card { background: #ffffff; border: 1px solid #e2e8f0; padding: 14px; border-radius: 10px; margin-bottom: 15px; }
+    .card h2 { color: #2b6cb0; font-size: 16px; margin-bottom: 12px; }
     
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 12px; }
-    input[type="text"], input[type="number"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; }
+    .form-grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 10px; }
+    input[type="text"], input[type="number"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; -webkit-appearance: none; }
     
-    .summary-box { background: #ebf8ff; border: 1px solid #bee3f8; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; color: #2b6cb0; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px; }
-    .summary-item { text-align: center; }
-    .summary-item span { display: block; font-size: 20px; color: #2c5282; }
+    .summary-box { background: #ebf8ff; border: 1px solid #bee3f8; padding: 12px; border-radius: 8px; margin-bottom: 12px; font-weight: bold; color: #2b6cb0; display: flex; flex-direction: column; gap: 8px; text-align: center; }
+    .summary-item span { display: block; font-size: 18px; color: #2c5282; margin-top: 2px; }
 
-    .btn-group { display: flex; flex-direction: column; gap: 10px; }
-    .btn { display: inline-block; text-align: center; background: #3182ce; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.2s; }
-    .btn:hover { background: #2b6cb0; }
+    .btn-group { display: flex; flex-direction: column; gap: 8px; }
+    .btn { display: inline-block; width: 100%; text-align: center; background: #3182ce; color: white; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; text-decoration: none; transition: background 0.2s; }
+    .btn:active { opacity: 0.85; }
     .btn-success { background: #38a169; }
-    .btn-success:hover { background: #2f855a; }
     .btn-danger { background: #e53e3e; color: white; border: none; padding: 6px 10px; font-size: 12px; border-radius: 4px; cursor: pointer; }
     .btn-warning { background: #ed8936; }
     .btn-dark { background: #4a5568; }
     
-    #map { height: 500px; width: 100%; border-radius: 10px; border: 1px solid #cbd5e0; margin-top: 15px; z-index: 1; }
+    #map { height: 380px; width: 100%; border-radius: 8px; border: 1px solid #cbd5e0; margin-top: 12px; z-index: 1; }
     .leaflet-routing-container { display: none !important; }
     
     .custom-div-icon, .leg-badge-icon { background: transparent; border: none; }
 
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; font-size: 13px; }
-    th { background: #f7fafc; color: #2d3748; }
+    /* Khung chứa bảng hỗ trợ cuộn mượt trên mobile */
+    .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
+    table { width: 100%; border-collapse: collapse; min-width: 500px; }
+    th, td { border: 1px solid #e2e8f0; padding: 8px 6px; text-align: left; font-size: 12px; line-height: 1.4; }
+    th { background: #f7fafc; color: #2d3748; font-weight: 700; }
 
-    .timeline { border-left: 3px solid #3182ce; padding-left: 15px; margin-left: 10px; }
-    .timeline-item { margin-bottom: 18px; }
-    .timeline-date { font-weight: bold; color: #2b6cb0; font-size: 14px; }
-    .timeline-title { font-size: 15px; font-weight: 600; margin: 3px 0; color: #1a202c; }
-    .timeline-desc { font-size: 13px; color: #4a5568; line-height: 1.5; }
+    .timeline { border-left: 2px solid #3182ce; padding-left: 12px; margin-left: 5px; }
+    .timeline-item { margin-bottom: 16px; }
+    .timeline-date { font-weight: bold; color: #2b6cb0; font-size: 13px; }
+    .timeline-title { font-size: 14px; font-weight: 600; margin: 3px 0; color: #1a202c; }
+    .timeline-desc { font-size: 12px; color: #4a5568; line-height: 1.5; }
 
-    /* Controls hiển thị theo quyền admin */
+    /* Admin UI */
     .admin-only { display: none !important; }
     body.is-admin .admin-only { display: grid !important; }
     body.is-admin .admin-flex { display: flex !important; }
@@ -70,16 +71,33 @@
     body:not(.is-admin) .admin-col { display: none !important; }
 
     /* Khung Chat Online */
-    .chat-box { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; }
-    .chat-messages { height: 220px; overflow-y: auto; background: white; border: 1px solid #cbd5e0; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
-    .chat-msg { margin-bottom: 10px; font-size: 13px; }
-    .chat-msg .sender { font-weight: bold; color: #2b6cb0; text-transform: uppercase; }
-    .chat-msg .time { font-size: 11px; color: #a0aec0; margin-left: 6px; }
-    .chat-msg .content { margin-top: 2px; color: #2d3748; background: #edf2f7; display: inline-block; padding: 6px 12px; border-radius: 8px; }
+    .chat-box { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; }
+    .chat-messages { height: 200px; overflow-y: auto; background: white; border: 1px solid #cbd5e0; border-radius: 6px; padding: 10px; margin-bottom: 10px; }
+    .chat-msg { margin-bottom: 8px; font-size: 12px; }
+    .chat-msg .sender { font-weight: bold; color: #2b6cb0; }
+    .chat-msg .time { font-size: 10px; color: #a0aec0; margin-left: 4px; }
+    .chat-msg .content { margin-top: 2px; color: #2d3748; background: #edf2f7; display: inline-block; padding: 5px 10px; border-radius: 6px; word-break: break-word; }
 
+    /* Media query cho Desktop/Tablet */
     @media (min-width: 600px) {
+      body { padding: 15px; }
+      .container { padding: 25px; border-radius: 16px; }
+      .header h1 { font-size: 26px; }
+      .admin-bar { flex-direction: row; justify-content: space-between; text-align: left; }
+      .admin-bar-btns { width: auto; }
+      .summary-box { flex-direction: row; justify-content: space-around; }
       .btn-group { flex-direction: row; }
-      .header h1 { font-size: 28px; }
+      .btn { width: auto; }
+      .form-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+      #map { height: 500px; }
+      table { min-width: 100%; }
+      th, td { padding: 10px; font-size: 13px; }
+      .chat-form-grid { grid-template-columns: 1fr 2fr auto !important; }
+    }
+
+    /* Ẩn cột tọa độ trên màn hình siêu nhỏ để tối ưu không gian */
+    @media (max-width: 480px) {
+      .col-coord { display: none; }
     }
   </style>
 </head>
@@ -94,9 +112,9 @@
     <!-- Thanh Quyền Hạn -->
     <div class="admin-bar">
       <div>
-        Quyền hiện tại: <span id="role-display" class="badge-role role-user">Thành Viên (Chỉ Xem)</span>
+        Quyền: <span id="role-display" class="badge-role role-user">Thành Viên (Chỉ Xem)</span>
       </div>
-      <div style="display: flex; gap: 8px;">
+      <div class="admin-bar-btns">
         <button id="btn-login-admin" class="btn btn-warning" onclick="loginAdmin()">🔐 Đăng Nhập Quản Trị</button>
         <button id="btn-change-pwd" class="btn btn-dark admin-only admin-flex" onclick="changeAdminPassword()">🔑 Đổi Mật Khẩu</button>
         <button id="btn-logout-admin" class="btn btn-danger admin-only admin-flex" onclick="logoutAdmin()">Thoát Quản Trị</button>
@@ -106,8 +124,8 @@
     <!-- Kho ảnh Google Drive -->
     <div class="card">
       <h2>📸 Kho Ảnh Chuyến Đi (Drive 100GB)</h2>
-      <p style="color: #4a5568; margin-bottom: 15px; font-size: 0.9em;">
-        Thành viên trong đoàn bấm nút dưới đây để xem toàn bộ ảnh hoặc tải ảnh mới chụp lên thư mục lưu trữ chung.
+      <p style="color: #4a5568; margin-bottom: 12px; font-size: 0.85em;">
+        Thành viên trong đoàn bấm nút dưới đây để xem toàn bộ ảnh hoặc tải ảnh mới chụp lên thư mục chung.
       </p>
       <div class="btn-group">
         <a href="https://drive.google.com/drive/folders/1M5zW8BWHiyxcm79u8gM8M1ygGRYj4az4?usp=drive_link" target="_blank" class="btn">
@@ -121,11 +139,11 @@
 
     <!-- Bản đồ & Lộ trình -->
     <div class="card">
-      <h2>🗺️ Lộ Trình Ô Tô Đường Bộ & Tính Quãng Đường Từng Chặng</h2>
+      <h2>🗺️ Lộ Trình & Tính Quãng Đường</h2>
       
       <div class="summary-box">
         <div class="summary-item">Tổng Quãng Đường: <span id="total-distance">0 km</span></div>
-        <div class="summary-item">Thời Gian Lái Xe Ước Tính: <span id="total-time">0 giờ</span></div>
+        <div class="summary-item">Thời Gian Lái Ước Tính: <span id="total-time">0 giờ</span></div>
       </div>
 
       <!-- Form nhập dành riêng Admin -->
@@ -135,63 +153,66 @@
         <input type="number" step="any" id="point-lat" placeholder="Vĩ độ (Lat)">
         <input type="number" step="any" id="point-lng" placeholder="Kinh độ (Lng)">
       </div>
-      <div class="btn-group admin-only admin-flex" style="margin-bottom: 15px;">
+      <div class="btn-group admin-only admin-flex" style="margin-bottom: 12px;">
         <button class="btn" onclick="addCustomPoint()">➕ Thêm Điểm Vào Lộ Trình</button>
         <button class="btn btn-warning" onclick="resetDefaultPoints()">🔄 Khôi Phục 7 Điểm Chuẩn</button>
       </div>
 
-      <h3>📍 Danh Sách Các Điểm Dừng & Quãng Đường Từng Chặng:</h3>
-      <table style="margin-bottom: 15px;">
-        <thead>
-          <tr>
-            <th>STT</th>
-            <th>Tên Điểm</th>
-            <th>Tọa Độ</th>
-            <th>Mô Tả / Thời Gian</th>
-            <th>Chặng Tiếp Theo</th>
-            <th class="admin-col">Thao Tác</th>
-          </tr>
-        </thead>
-        <tbody id="route-points-list"></tbody>
-      </table>
+      <h3 style="font-size: 14px; margin-top: 10px;">📍 Danh Sách Các Điểm Dừng:</h3>
+      
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 35px;">STT</th>
+              <th>Tên Điểm</th>
+              <th class="col-coord">Tọa Độ</th>
+              <th>Mô Tả</th>
+              <th>Chặng Tiếp Theo</th>
+              <th class="admin-col">Xóa</th>
+            </tr>
+          </thead>
+          <tbody id="route-points-list"></tbody>
+        </table>
+      </div>
 
       <div id="map"></div>
     </div>
 
     <!-- Quản lý Thành viên -->
     <div class="card">
-      <h2>👥 Quản Lý Thành Viên Trong Đoàn</h2>
+      <h2>👥 Thành Viên Trong Đoàn</h2>
       
       <div class="form-grid admin-only">
         <input type="text" id="member-name" placeholder="Họ và tên">
         <input type="text" id="member-phone" placeholder="Số điện thoại">
-        <input type="text" id="member-role" placeholder="Vai trò (VD: Trưởng đoàn, Lái chính)">
+        <input type="text" id="member-role" placeholder="Vai trò (VD: Lái chính)">
       </div>
       <button class="btn btn-success admin-only admin-flex" onclick="addMember()" style="margin-bottom: 12px;">➕ Thêm Thành Viên</button>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Họ Tên</th>
-            <th>SĐT</th>
-            <th>Vai Trò</th>
-            <th class="admin-col">Thao Tác</th>
-          </tr>
-        </thead>
-        <tbody id="member-list"></tbody>
-      </table>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Họ Tên</th>
+              <th>SĐT</th>
+              <th>Vai Trò</th>
+              <th class="admin-col">Thao Tác</th>
+            </tr>
+          </thead>
+          <tbody id="member-list"></tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Khung Chat Online -->
     <div class="card">
-      <h2>💬 Trò Chuyện Online Thành Viên</h2>
+      <h2>💬 Trò Chuyện Online</h2>
       <div class="chat-box">
-        <div class="chat-messages" id="chat-messages">
-          <!-- Tin nhắn tự động hiển thị -->
-        </div>
-        <div class="form-grid" style="grid-template-columns: 1fr 2fr auto; gap: 8px;">
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="form-grid chat-form-grid" style="gap: 6px;">
           <input type="text" id="chat-user" placeholder="HỌ VÀ TÊN (IN HOA)" style="text-transform: uppercase;">
-          <input type="text" id="chat-text" placeholder="Nhập nội dung trò chuyện...">
+          <input type="text" id="chat-text" placeholder="Nhập tin nhắn...">
           <button class="btn btn-success" onclick="sendChatMessage()">Gửi 📤</button>
         </div>
       </div>
@@ -199,66 +220,65 @@
 
     <!-- Lịch trình chi tiết 6 ngày 5 đêm -->
     <div class="card">
-      <h2>📅 Chi Tiết Lịch Trình 6 Ngày 5 Đêm</h2>
+      <h2>📅 Lịch Trình Chi Tiết 6N5Đ</h2>
       <div class="timeline">
         
         <div class="timeline-item">
           <div class="timeline-date">NGÀY 1: THỨ 6 - 28/08/2026</div>
-          <div class="timeline-title">Hà Nội (Điểm 1) ➔ Thành Phố Thanh Hóa (Điểm 2)</div>
+          <div class="timeline-title">Hà Nội ➔ Thanh Hóa</div>
           <div class="timeline-desc">
-            • <b>17:00:</b> Xuất phát từ Hateco Apollo (Điểm 1).<br>
-            • <b>22:00:</b> Đến TP Thanh Hóa (Điểm 2), nhận phòng nghỉ đêm (Đêm 1).
+            • <b>17:00:</b> Xuất phát từ Hateco Apollo.<br>
+            • <b>22:00:</b> Đến TP Thanh Hóa, nhận phòng nghỉ đêm (Đêm 1).
           </div>
         </div>
 
         <div class="timeline-item">
           <div class="timeline-date">NGÀY 2: THỨ 7 - 29/08/2026</div>
-          <div class="timeline-title">Thanh Hóa (Điểm 2) ➔ Đồng Hới (Điểm 3) ➔ Hội An (Điểm 4)</div>
+          <div class="timeline-title">Thanh Hóa ➔ Đồng Hới ➔ Hội An</div>
           <div class="timeline-desc">
-            • <b>05:00 - 07:00:</b> Xuất phát từ Thanh Hóa đi TP Đồng Hới (Điểm 3).<br>
-            • <b>Trưa:</b> Dừng nghỉ ăn trưa tại Đồng Hới, nghỉ ngơi ~30 phút.<br>
-            • <b>Chiều:</b> Tiếp tục di chuyển vào Hội An (Điểm 4).<br>
-            • <b>Tối / Đêm:</b> Đến Hội An, nhận phòng và nghỉ đêm (Đêm 2).
+            • <b>05:00 - 07:00:</b> Xuất phát đi Đồng Hới.<br>
+            • <b>Trưa:</b> Ăn trưa tại Đồng Hới.<br>
+            • <b>Chiều:</b> Tiếp tục di chuyển vào Hội An.<br>
+            • <b>Tối:</b> Đến Hội An, nhận phòng và nghỉ đêm (Đêm 2).
           </div>
         </div>
 
         <div class="timeline-item">
           <div class="timeline-date">NGÀY 3: CHỦ NHẬT - 30/08/2026</div>
-          <div class="timeline-title">Khám Phá Hội An ➔ Di Chuyển Sang Huế (Điểm 5)</div>
+          <div class="timeline-title">Hội An ➔ Di Chuyển Sang Huế</div>
           <div class="timeline-desc">
-            • <b>Sáng & Trưa:</b> Khám phá trọn vẹn 1 ngày tại Phố cổ Hội An & Rừng dừa Bảy Mẫu.<br>
-            • <b>16:00 - 17:00:</b> Khởi hành di chuyển từ Hội An sang Thành phố Huế (Điểm 5).<br>
-            • <b>Tối:</b> Ăn tối, thưởng thức ẩm thực Cố đô và nghỉ đêm tại Huế (Đêm 3).
+            • <b>Sáng & Trưa:</b> Khám phá Phố cổ Hội An & Rừng dừa Bảy Mẫu.<br>
+            • <b>16:00 - 17:00:</b> Khởi hành sang TP Huế.<br>
+            • <b>Tối:</b> Ăn tối, thưởng thức ẩm thực Cố đô, nghỉ đêm tại Huế (Đêm 3).
           </div>
         </div>
 
         <div class="timeline-item">
           <div class="timeline-date">NGÀY 4: THỨ 2 - 31/08/2026</div>
-          <div class="timeline-title">Trọn Ngày Tham Quan Cố Đô Huế</div>
+          <div class="timeline-title">Khám Phá Cố Đô Huế</div>
           <div class="timeline-desc">
-            • <b>Cả ngày:</b> Trải nghiệm trọn vẹn 1 ngày khám phá Huế (Đại Nội, các Lăng tẩm, Chùa Thiên Mụ...).<br>
+            • <b>Cả ngày:</b> Tham quan Đại Nội, các Lăng tẩm, Chùa Thiên Mụ...<br>
             • <b>Tối:</b> Tự do dạo phố, ngắm sông Hương và nghỉ đêm tại Huế (Đêm 4).
           </div>
         </div>
 
         <div class="timeline-item">
           <div class="timeline-date">NGÀY 5: THỨ 3 - 01/09/2026</div>
-          <div class="timeline-title">Huế ➔ Ăn Trưa Đồng Hới ➔ Vinpearl Hà Tĩnh (Điểm 6)</div>
+          <div class="timeline-title">Huế ➔ Đồng Hới ➔ Vinpearl Hà Tĩnh</div>
           <div class="timeline-desc">
-            • <b>Sáng:</b> Ăn sáng, dạo chơi TP Huế.<br>
-            • <b>08:00 - 09:00:</b> Khởi hành di chuyển về hướng Hà Tĩnh.<br>
-            • <b>Trưa:</b> Dừng nghỉ và ăn trưa tại Đồng Hới (Điểm 3).<br>
-            • <b>Chiều tối:</b> Đến Vinpearl Hà Tĩnh (Điểm 6), nhận phòng và nghỉ đêm (Đêm 5).
+            • <b>08:00:</b> Khởi hành từ Huế về hướng Hà Tĩnh.<br>
+            • <b>Trưa:</b> Dừng ăn trưa tại Đồng Hới.<br>
+            • <b>Chiều tối:</b> Đến Vinpearl Hà Tĩnh, nhận phòng nghỉ đêm (Đêm 5).
           </div>
         </div>
 
         <div class="timeline-item">
           <div class="timeline-date">NGÀY 6: THỨ 4 - 02/09/2026</div>
-          <div class="timeline-title">Hà Tĩnh ➔ Trở Về Hateco Apollo (Điểm 7 - Kết Thúc)</div>
+          <div class="timeline-title">Hà Tĩnh ➔ Hateco Apollo (Về Đích)</div>
           <div class="timeline-desc">
-            • <b>Sáng:</b> Dạo quanh, tắm biển Hà Tĩnh, ăn sáng.<br>
-            • <b>08:00 - 09:00:</b> Khởi hành di chuyển về Hà Nội.<br>
-            • <b>Chiều:</b> Về tới Hateco Apollo (Điểm 1 & 7). Kết thúc chuyến đi an toàn, hẹn gặp lại ở hành trình mới!
+            • <b>Sáng:</b> Dạo chơi, tắm biển Hà Tĩnh, ăn sáng.<br>
+            • <b>08:00 - 09:00:</b> Khởi hành về Hà Nội.<br>
+            • <b>Chiều:</b> Về tới Hateco Apollo. Kết thúc chuyến đi an toàn!
           </div>
         </div>
 
@@ -275,12 +295,12 @@
 
     const defaultPoints = [
       { name: "1. Hateco Apollo (Xuân Phương)", lat: 21.0477, lng: 105.7344, desc: "Xuất phát: 17:00 ngày 28/08/2026" },
-      { name: "2. Thành phố Thanh Hoá", lat: 19.8079, lng: 105.7770, desc: "Nghỉ đêm 1 (22:00 ngày 28/08)" },
-      { name: "3. Thành phố Đồng Hới", lat: 17.4661, lng: 106.6192, desc: "Dừng ăn trưa ngày 29/08 & 01/09" },
-      { name: "4. Trung tâm phố cổ Hội An", lat: 15.8806, lng: 108.3307, desc: "Khám phá Hội An & Nghỉ đêm 2" },
-      { name: "5. Trung tâm thành phố Huế", lat: 16.4759, lng: 107.5891, desc: "Khám phá Huế & Nghỉ đêm 3, Đêm 4" },
+      { name: "2. TP Thanh Hoá", lat: 19.8079, lng: 105.7770, desc: "Nghỉ đêm 1 (22:00 ngày 28/08)" },
+      { name: "3. TP Đồng Hới", lat: 17.4661, lng: 106.6192, desc: "Dừng ăn trưa ngày 29/08 & 01/09" },
+      { name: "4. Phố cổ Hội An", lat: 15.8806, lng: 108.3307, desc: "Khám phá Hội An & Nghỉ đêm 2" },
+      { name: "5. Thành phố Huế", lat: 16.4759, lng: 107.5891, desc: "Khám phá Huế & Nghỉ đêm 3, Đêm 4" },
       { name: "6. Vinpearl Hà Tĩnh", lat: 18.5054, lng: 105.8871, desc: "Nghỉ đêm 5 (Ngày 01/09)" },
-      { name: "7. Hateco Apollo (Điểm kết thúc)", lat: 21.0477, lng: 105.7344, desc: "Kết thúc hành trình (Ngày 02/09)" }
+      { name: "7. Hateco Apollo (Về đích)", lat: 21.0477, lng: 105.7344, desc: "Kết thúc hành trình (Ngày 02/09)" }
     ];
 
     const presetLegs = [
@@ -298,13 +318,11 @@
       loadMembers();
       loadChatMessages();
 
-      // Tự động chuyển Họ Tên thành VIẾT HOA khi gõ
-      document.getElementById('chat-user').addEventListener('input', function(e) {
+      document.getElementById('chat-user').addEventListener('input', function() {
         this.value = this.value.toUpperCase();
       });
     });
 
-    /* --- PHẦN PHÂN QUYỀN THÀNH VIÊN / ADMIN --- */
     function getAdminPassword() {
       return localStorage.getItem('admin_pwd') || 'admin123';
     }
@@ -317,12 +335,12 @@
       if (isAdmin) {
         document.body.classList.add('is-admin');
         roleDisplay.className = 'badge-role role-admin';
-        roleDisplay.innerText = 'Quản Trị Viên (Toàn Quyền)';
+        roleDisplay.innerText = 'Quản Trị Viên';
         btnLogin.style.display = 'none';
       } else {
         document.body.classList.remove('is-admin');
         roleDisplay.className = 'badge-role role-user';
-        roleDisplay.innerText = 'Thành Viên (Chỉ Xem)';
+        roleDisplay.innerText = 'Thành Viên (Xem)';
         btnLogin.style.display = 'inline-block';
       }
     }
@@ -362,7 +380,6 @@
       }
     }
 
-    /* --- TRÒ CHUYỆN ONLINE --- */
     function loadChatMessages() {
       const messages = JSON.parse(localStorage.getItem('trip_chat')) || [
         { user: "HỆ THỐNG", text: "Chào mừng cả đoàn đến với kênh trao đổi chuyến đi 2026!", time: "10:00" }
@@ -398,7 +415,6 @@
       loadChatMessages();
     }
 
-    /* --- BẢN ĐỒ LEAFLET & HÀM XỬ LÝ LỘ TRÌNH --- */
     function calcDistanceKm(lat1, lon1, lat2, lon2) {
       const R = 6371;
       const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -415,7 +431,7 @@
         if (!map) {
           map = L.map('map').setView([18.5, 106.0], 6);
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
+            attribution: '© OpenStreetMap'
           }).addTo(map);
         }
 
@@ -452,26 +468,20 @@
           profile: 'car'
         }),
         lineOptions: {
-          styles: [{ color: '#007bff', weight: 5, opacity: 0.8 }]
+          styles: [{ color: '#007bff', weight: 4, opacity: 0.8 }]
         },
         createMarker: function(i, wp) {
           let p = points[i] || { name: `Điểm ${i+1}`, desc: "" };
           let bgColor = '#007bff';
-          let anchorOffset = [15, 15];
 
-          if (i === 0) {
-            bgColor = '#28a745';
-            anchorOffset = [34, 15];
-          } else if (i === points.length - 1) {
-            bgColor = '#dc3545';
-            anchorOffset = [-4, 15];
-          }
+          if (i === 0) bgColor = '#28a745';
+          else if (i === points.length - 1) bgColor = '#dc3545';
 
           let customIcon = L.divIcon({
             className: 'custom-div-icon',
-            html: `<div style="background-color:${bgColor};color:white;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);">${i + 1}</div>`,
-            iconSize: [30, 30],
-            iconAnchor: anchorOffset
+            html: `<div style="background-color:${bgColor};color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;border:2px solid white;box-shadow:0 2px 5px rgba(0,0,0,0.3);">${i + 1}</div>`,
+            iconSize: [26, 26],
+            iconAnchor: [13, 13]
           });
 
           return L.marker(wp.latLng, { icon: customIcon }).bindPopup(`<b>${p.name}</b><br>${p.desc}`);
@@ -488,7 +498,7 @@
       routingControl.on('routingerror', function() {
         if (!fallbackPolyline) {
           let latLngs = points.map(p => [p.lat, p.lng]);
-          fallbackPolyline = L.polyline(latLngs, { color: '#007bff', weight: 4, dashArray: '6, 8' }).addTo(map);
+          fallbackPolyline = L.polyline(latLngs, { color: '#007bff', weight: 3, dashArray: '5, 8' }).addTo(map);
         }
       });
     }
@@ -538,27 +548,27 @@
           let legM = legMin % 60;
           let timeStr = legH > 0 ? `${legH}g${legM}p` : `${legM}p`;
 
-          legInfo = `<span style="color:#2b6cb0; font-weight:bold;">➔ Điểm ${index+2}: ${legKm.toFixed(1)} km (~${timeStr})</span>`;
+          legInfo = `<span style="color:#2b6cb0; font-weight:600;">➔ Điểm ${index+2}: ${legKm.toFixed(1)} km (~${timeStr})</span>`;
 
           let badge = L.marker([midLat, midLng], {
             icon: L.divIcon({
               className: 'leg-badge-icon',
-              html: `<div style="background:#1a365d;color:white;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:bold;white-space:nowrap;border:1px solid white;box-shadow:0 2px 5px rgba(0,0,0,0.3);">➔ ${legKm.toFixed(1)} km</div>`,
-              iconAnchor: [30, 10]
+              html: `<div style="background:#1a365d;color:white;padding:2px 6px;border-radius:10px;font-size:10px;font-weight:bold;white-space:nowrap;border:1px solid white;">➔ ${legKm.toFixed(1)} km</div>`,
+              iconAnchor: [25, 8]
             })
           }).addTo(map);
 
           legBadgeMarkers.push(badge);
 
         } else if (index === points.length - 1) {
-          legInfo = `<span style="color:#28a745; font-weight:bold;">🏁 Về đích</span>`;
+          legInfo = `<span style="color:#28a745; font-weight:600;">🏁 Về đích</span>`;
         }
 
         tbody.innerHTML += `
           <tr>
             <td><b>${index + 1}</b></td>
             <td><b>${p.name}</b></td>
-            <td><code>${p.lat}, ${p.lng}</code></td>
+            <td class="col-coord"><code>${p.lat}, ${p.lng}</code></td>
             <td>${p.desc || '-'}</td>
             <td>${legInfo}</td>
             <td class="admin-col">
@@ -581,7 +591,7 @@
       let lng = parseFloat(document.getElementById('point-lng').value);
 
       if (!name || isNaN(lat) || isNaN(lng)) {
-        return alert("Vui lòng nhập Tên điểm, Vĩ độ và Kinh độ hợp lệ!");
+        return alert("Vui lòng nhập Tên điểm, Vĩ độ và Kinh độ!");
       }
 
       let points = JSON.parse(localStorage.getItem('trip_points')) || defaultPoints;
@@ -599,9 +609,7 @@
 
     function deletePoint(index) {
       let points = JSON.parse(localStorage.getItem('trip_points')) || defaultPoints;
-      if (points.length <= 2) {
-        return alert("Lộ trình cần ít nhất 2 điểm!");
-      }
+      if (points.length <= 2) return alert("Lộ trình cần ít nhất 2 điểm!");
       points.splice(index, 1);
       localStorage.setItem('trip_points', JSON.stringify(points));
       renderPointsTable(points, null);
@@ -641,7 +649,7 @@
       let phone = document.getElementById('member-phone').value;
       let role = document.getElementById('member-role').value || "Thành viên";
 
-      if (!name) return alert("Vui lòng nhập họ tên thành viên!");
+      if (!name) return alert("Vui lòng nhập họ tên!");
 
       let members = JSON.parse(localStorage.getItem('trip_members')) || [];
       members.push({ name, phone, role });
