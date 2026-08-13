@@ -465,7 +465,7 @@
     <section id="v6-tools" class="v6-section">
       <div class="v6-card">
         <h3>⚙️ Khu vực quản trị</h3>
-        <div class="v6-admin-note">Khi chưa đăng nhập: toàn bộ ứng dụng ở chế độ Thành viên — chỉ xem. Mật khẩu quản trị được lưu tập trung trên Firebase/Firestore để dùng chung trên mọi thiết bị. Sau khi đăng nhập Quản trị, các nút thêm/sửa/xóa mới được kích hoạt. Nút “Xóa chi phí mẫu” chỉ xóa dữ liệu mẫu; chi phí thực tế phải sửa/xóa ngay tại bảng Quản lý chi phí.</div>
+        <div class="v6-admin-note">Khi chưa đăng nhập: toàn bộ ứng dụng ở chế độ Thành viên — chỉ xem. Sau khi đăng nhập Quản trị, các nút thêm/sửa/xóa mới được kích hoạt. Nút “Xóa chi phí mẫu” chỉ xóa dữ liệu mẫu; chi phí thực tế phải sửa/xóa ngay tại bảng Quản lý chi phí.</div>
         <button class="btn btn-warning admin-only admin-flex" onclick="v6SeedCostDemo()">🧪 Tạo dữ liệu mẫu chi phí</button>
         <button class="btn btn-danger admin-only admin-flex" style="margin-top:8px" onclick="v6ClearDemoExpenses()">🗑️ Xóa chi phí mẫu</button>
       </div>
@@ -552,51 +552,8 @@
       });
     });
 
-    // V6: Admin password is stored centrally in Firebase/Firestore.
-    // LocalStorage is retained only as a migration/fallback mechanism.
-    let adminPasswordCache = null;
-    const ADMIN_CONFIG_REF = () => db.collection("trip_data").doc("admin_config");
-
-    async function loadAdminPassword() {
-      try {
-        const doc = await ADMIN_CONFIG_REF().get();
-
-        if (doc.exists && doc.data().adminPassword) {
-          adminPasswordCache = String(doc.data().adminPassword);
-          return adminPasswordCache;
-        }
-
-        // Migrate an old locally changed password from this browser, if present.
-        const localPwd = localStorage.getItem('admin_pwd');
-        if (localPwd && localPwd.trim()) {
-          adminPasswordCache = localPwd.trim();
-          try {
-            await ADMIN_CONFIG_REF().set({
-              adminPassword: adminPasswordCache,
-              updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-              migratedFromLocal: true
-            }, { merge: true });
-          } catch (migrationErr) {
-            console.warn("Không thể đồng bộ mật khẩu cũ lên Firestore:", migrationErr);
-          }
-          return adminPasswordCache;
-        }
-
-        adminPasswordCache = 'admin123';
-        return adminPasswordCache;
-      } catch (err) {
-        console.error("Không thể đọc mật khẩu quản trị từ Firestore:", err);
-        adminPasswordCache = localStorage.getItem('admin_pwd') || 'admin123';
-        return adminPasswordCache;
-      }
-    }
-
     function getAdminPassword() {
-      return adminPasswordCache || localStorage.getItem('admin_pwd') || 'admin123';
-    }
-
-    async function checkAdminPasswordDatabase() {
-      await loadAdminPassword();
+      return localStorage.getItem('admin_pwd') || 'admin123';
     }
 
     function checkAdminStatus() {
@@ -617,18 +574,13 @@
       }
     }
 
-    async function loginAdmin() {
+    function loginAdmin() {
       const pwd = prompt("Nhập mật khẩu quản trị:");
-      if (pwd === null) return;
-
-      // Refresh from Firestore before every login so all devices use the same password.
-      const currentPwd = await loadAdminPassword();
-
-      if (pwd === currentPwd) {
+      if (pwd === getAdminPassword()) {
         sessionStorage.setItem('is_admin', 'true');
         checkAdminStatus();
         alert("Đăng nhập quản trị thành công!");
-      } else {
+      } else if (pwd !== null) {
         alert("Mật khẩu không chính xác!");
       }
     }
@@ -638,44 +590,16 @@
       checkAdminStatus();
     }
 
-    async function changeAdminPassword() {
-      if (sessionStorage.getItem('is_admin') !== 'true') {
-        alert("Chức năng này chỉ dành cho Quản trị viên.");
-        return;
-      }
-
+    function changeAdminPassword() {
       const oldPwd = prompt("Nhập mật khẩu cũ:");
-      if (oldPwd === null) return;
-
-      const currentPwd = await loadAdminPassword();
-
-      if (oldPwd !== currentPwd) {
+      if (oldPwd === getAdminPassword()) {
+        const newPwd = prompt("Nhập mật khẩu mới:");
+        if (newPwd && newPwd.trim() !== '') {
+          localStorage.setItem('admin_pwd', newPwd.trim());
+          alert("Cập nhật mật khẩu thành công!");
+        }
+      } else if (oldPwd !== null) {
         alert("Mật khẩu cũ không khớp!");
-        return;
-      }
-
-      const newPwd = prompt("Nhập mật khẩu mới:");
-      if (!newPwd || newPwd.trim() === '') return;
-
-      const cleanPwd = newPwd.trim();
-
-      try {
-        await ADMIN_CONFIG_REF().set({
-          adminPassword: cleanPwd,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          updatedBy: "admin"
-        }, { merge: true });
-
-        adminPasswordCache = cleanPwd;
-        // Keep the old local value only as a fallback; Firestore is the source of truth.
-        localStorage.setItem('admin_pwd', cleanPwd);
-
-        alert("Đã đổi mật khẩu và lưu vào Firebase/Firestore. Các thiết bị khác sẽ dùng mật khẩu mới.");
-      } catch (err) {
-        console.error(err);
-        alert("Không thể lưu mật khẩu lên database. Vui lòng kiểm tra kết nối Firebase và Firestore Rules.
-
-" + err.message);
       }
     }
 
@@ -1326,8 +1250,7 @@
       v6SyncRoleUI();
     };
 
-    document.addEventListener('DOMContentLoaded',async function(){
-      await checkAdminPasswordDatabase();
+    document.addEventListener('DOMContentLoaded',function(){
       v6ListenExpenses();
       v6SyncRoleUI();
 
