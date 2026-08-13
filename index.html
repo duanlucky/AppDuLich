@@ -510,17 +510,33 @@
         },
         createMarker: function(i, wp) {
           let p = points[i] || { name: `Điểm ${i+1}`, desc: "" };
-          let bgColor = '#007bff';
+          let customIcon;
 
-          if (i === 0) bgColor = '#28a745';
-          else if (i === points.length - 1) bgColor = '#dc3545';
-
-          let customIcon = L.divIcon({
-            className: 'custom-div-icon',
-            html: `<div style="background-color:${bgColor};color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;border:2px solid white;box-shadow:0 2px 5px rgba(0,0,0,0.3);">${i + 1}</div>`,
-            iconSize: [26, 26],
-            iconAnchor: [13, 13]
-          });
+          if (i === 0) {
+            // Điểm 1: Biểu tượng cờ xuất phát (Xanh - Trắng)
+            customIcon = L.divIcon({
+              className: 'custom-div-icon',
+              html: `<div style="background:linear-gradient(45deg, #28a745 50%, #ffffff 50%);color:#1a365d;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;border:2px solid #28a745;box-shadow:0 2px 5px rgba(0,0,0,0.3);" title="Xuất phát">🏁</div>`,
+              iconSize: [30, 30],
+              iconAnchor: [15, 15]
+            });
+          } else if (i === points.length - 1) {
+            // Điểm số 7 (Về đích): Biểu tượng cờ về đích (Đen - Trắng)
+            customIcon = L.divIcon({
+              className: 'custom-div-icon',
+              html: `<div style="background:linear-gradient(45deg, #111111 50%, #ffffff 50%);color:#dc3545;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;border:2px solid #111111;box-shadow:0 2px 5px rgba(0,0,0,0.3);" title="Về đích">🏁</div>`,
+              iconSize: [30, 30],
+              iconAnchor: [15, 15]
+            });
+          } else {
+            // Các điểm trung gian khác
+            customIcon = L.divIcon({
+              className: 'custom-div-icon',
+              html: `<div style="background-color:#007bff;color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;border:2px solid white;box-shadow:0 2px 5px rgba(0,0,0,0.3);">${i + 1}</div>`,
+              iconSize: [26, 26],
+              iconAnchor: [13, 13]
+            });
+          }
 
           return L.marker(wp.latLng, { icon: customIcon }).bindPopup(`<b>${p.name}</b><br>${p.desc}`);
         },
