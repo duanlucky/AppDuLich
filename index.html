@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title id="app-title">AppDuLich ver6.8</title>
+  <title> Hành trình du lịch hè 2026 (28/08 - 02/09/2026)</title>
   
   <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -174,14 +174,13 @@
     }
 
   </style>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
   <div class="container">
     <div class="header">
-      <h1 id="app-header-title">APPDU LỊCH</h1>
-      <p id="app-header-subtitle">Đang tải hành trình...</p>
+      <h1>HÀNH TRÌNH DU LỊCH HÈ 2026 BY NGUYEN TIEN DUAN</h1>
+      <p>6 Ngày 5 Đêm: Hà Nội – Thanh Hóa – Đồng Hới – Hội An – Huế – Hà Tĩnh – Hà Nội</p>
     </div>
 
     <!-- Thanh Quyền Hạn -->
@@ -293,13 +292,76 @@
       </div>
     </div>
 
-    <!-- Lịch trình chi tiết — dữ liệu động từ Firebase -->
+    <!-- Lịch trình chi tiết 6 ngày 5 đêm -->
     <div class="card">
-      <h2 id="legacy-schedule-title">📅 Lịch Trình Chi Tiết</h2>
-      <div id="legacy-schedule-timeline" class="timeline"></div>
+      <h2>📅 Lịch Trình Chi Tiết 6N5Đ</h2>
+      <div class="timeline">
+        
+        <div class="timeline-item">
+          <div class="timeline-date">NGÀY 1: THỨ 6 - 28/08/2026</div>
+          <div class="timeline-title">Hà Nội ➔ Thanh Hóa</div>
+          <div class="timeline-desc">
+            • <b>17:00:</b> Xuất phát từ Hateco Apollo.<br>
+            • <b>22:00:</b> Đến TP Thanh Hóa, nhận phòng nghỉ đêm (Đêm 1).
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-date">NGÀY 2: THỨ 7 - 29/08/2026</div>
+          <div class="timeline-title">Thanh Hóa ➔ Đồng Hới ➔ Hội An</div>
+          <div class="timeline-desc">
+            • <b>05:00 - 07:00:</b> Xuất phát đi Đồng Hới.<br>
+            • <b>Trưa:</b> Ăn trưa tại Đồng Hới.<br>
+            • <b>Chiều:</b> Tiếp tục di chuyển vào Hội An.<br>
+            • <b>Tối:</b> Đến Hội An, nhận phòng và nghỉ đêm (Đêm 2).
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-date">NGÀY 3: CHỦ NHẬT - 30/08/2026</div>
+          <div class="timeline-title">Hội An ➔ Di Chuyển Sang Huế</div>
+          <div class="timeline-desc">
+            • <b>Sáng & Trưa:</b> Khám phá Phố cổ Hội An & Rừng dừa Bảy Mẫu.<br>
+            • <b>16:00 - 17:00:</b> Khởi hành sang TP Huế.<br>
+            • <b>Tối:</b> Ăn tối, thưởng thức ẩm thực Cố đô, nghỉ đêm tại Huế (Đêm 3).
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-date">NGÀY 4: THỨ 2 - 31/08/2026</div>
+          <div class="timeline-title">Khám Phá Cố Đô Huế</div>
+          <div class="timeline-desc">
+            • <b>Cả ngày:</b> Tham quan Đại Nội, các Lăng tẩm, Chùa Thiên Mụ...<br>
+            • <b>Tối:</b> Tự do dạo phố, ngắm sông Hương và nghỉ đêm tại Huế (Đêm 4).
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-date">NGÀY 5: THỨ 3 - 01/09/2026</div>
+          <div class="timeline-title">Huế ➔ Đồng Hới ➔ Vinpearl Hà Tĩnh</div>
+          <div class="timeline-desc">
+            • <b>08:00:</b> Khởi hành từ Huế về hướng Hà Tĩnh.<br>
+            • <b>Trưa:</b> Dừng ăn trưa tại Đồng Hới.<br>
+            • <b>Chiều tối:</b> Đến Vinpearl Hà Tĩnh, nhận phòng nghỉ đêm (Đêm 5).
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-date">NGÀY 6: THỨ 4 - 02/09/2026</div>
+          <div class="timeline-title">Hà Tĩnh ➔ Hateco Apollo (Về Đích)</div>
+          <div class="timeline-desc">
+            • <b>Sáng:</b> Dạo chơi, tắm biển Hà Tĩnh, ăn sáng.<br>
+            • <b>08:00 - 09:00:</b> Khởi hành về Hà Nội.<br>
+            • <b>Chiều:</b> Về tới Hateco Apollo. Kết thúc chuyến đi an toàn!
+          </div>
+        </div>
+
+      </div>
     </div>
 
-    <!-- ================= V6 FINAL · ver6.8 ================= -->
+
+
+    <!-- ================= V6 FINAL ================= -->
     <div class="v6-nav">
       <button class="active" onclick="v6Show('home',this)">🏠 Tổng quan</button>
       <button onclick="v6Show('route',this)">🗺️ Lộ trình</button>
@@ -313,19 +375,27 @@
       <div class="v6-hero">
         <div class="v6-hero-top">
           <div>
-            <h2 id="v7-home-title">🌄 Hành trình</h2>
-            <p id="v7-home-subtitle">Đang tải...</p>
+            <h2>🌄 Hành trình 2026</h2>
+            <p>28/08 → 02/09/2026 · 6 ngày 5 đêm<br>Hà Nội → Thanh Hóa → Đồng Hới → Hội An → Huế → Hà Tĩnh → Hà Nội</p>
           </div>
           <span class="v6-admin-badge" id="v6-role-badge">THÀNH VIÊN</span>
         </div>
         <div class="v6-pills">
           <div class="v6-pill"><b id="v6-total-km">0 km</b><span>Quãng đường</span></div>
-          <div class="v6-pill"><b id="v6-day-count">0 ngày</b><span>Hành trình</span></div>
+          <div class="v6-pill"><b>6 ngày</b><span>Hành trình</span></div>
           <div class="v6-pill"><b id="v6-member-count">0</b><span>Thành viên</span></div>
           <div class="v6-pill"><b id="v6-cost-total">0 đ</b><span>Tổng chi phí</span></div>
         </div>
       </div>
-<div class="v6-card"><h3>🧭 Trạng thái chuyến đi</h3><div id="v7-home-days"></div></div>
+      <div class="v6-card">
+        <h3>🧭 Trạng thái chuyến đi</h3>
+        <div class="v6-day"><b>28/08 · Hà Nội → Thanh Hóa</b><p>Xuất phát 17:00 · nghỉ đêm 1</p></div>
+        <div class="v6-day"><b>29/08 · Thanh Hóa → Đồng Hới → Hội An</b><p>Ngày di chuyển dài · nghỉ đêm 2</p></div>
+        <div class="v6-day"><b>30/08 · Hội An → Huế</b><p>Tham quan Hội An · nghỉ đêm 3</p></div>
+        <div class="v6-day"><b>31/08 · Huế</b><p>Khám phá Cố đô · nghỉ đêm 4</p></div>
+        <div class="v6-day"><b>01/09 · Huế → Hà Tĩnh</b><p>Di chuyển về phía Bắc · nghỉ đêm 5</p></div>
+        <div class="v6-day"><b>02/09 · Hà Tĩnh → Hà Nội</b><p>Chặng cuối · kết thúc hành trình</p></div>
+      </div>
     </section>
 
     <section id="v6-route" class="v6-section">
@@ -337,7 +407,15 @@
     </section>
 
     <section id="v6-schedule" class="v6-section">
-<div class="v6-card"><h3 id="v7-schedule-title">📅 Lịch trình</h3><div id="v7-schedule-days"></div></div>
+      <div class="v6-card">
+        <h3>📅 Lịch trình 6 ngày 5 đêm</h3>
+        <div class="v6-day"><b>NGÀY 1 · 28/08</b><p>17:00 xuất phát từ Hateco Apollo → Thanh Hóa · nhận phòng.</p></div>
+        <div class="v6-day"><b>NGÀY 2 · 29/08</b><p>Thanh Hóa → Đồng Hới → Hội An · ăn trưa tại Đồng Hới · nhận phòng Hội An.</p></div>
+        <div class="v6-day"><b>NGÀY 3 · 30/08</b><p>Khám phá Hội An → chiều di chuyển sang Huế.</p></div>
+        <div class="v6-day"><b>NGÀY 4 · 31/08</b><p>Khám phá Đại Nội, lăng tẩm, Chùa Thiên Mụ và Huế.</p></div>
+        <div class="v6-day"><b>NGÀY 5 · 01/09</b><p>Huế → Đồng Hới → Vinpearl Hà Tĩnh.</p></div>
+        <div class="v6-day"><b>NGÀY 6 · 02/09</b><p>Hà Tĩnh → Hà Nội · kết thúc hành trình.</p></div>
+      </div>
     </section>
 
     <section id="v6-members" class="v6-section">
@@ -396,53 +474,6 @@
     </section>
 
     <section id="v6-tools" class="v6-section">
-      <div class="v6-card">
-        <h3>🧭 Chuyến đi đang sử dụng</h3>
-        <div class="v6-admin-note">Mỗi chuyến đi được lưu riêng trên Firebase. Thành viên chỉ xem chuyến đang được chọn; chỉ Quản trị viên được tạo, sửa, chọn hoặc xóa chuyến.</div>
-        <select id="v7-trip-selector" style="width:100%;padding:10px;border:1px solid #cbd5e0;border-radius:8px;font-size:13px;background:#fff" onchange="v7SelectTrip(this.value)"></select>
-        <div id="v7-trip-list" style="margin-top:10px"></div>
-      </div>
-
-      <div class="v6-card admin-only">
-        <h3>➕ Tạo hành trình mới</h3>
-        <div class="form-grid">
-          <input type="text" id="v7-new-title" placeholder="Tên hành trình, ví dụ: Tây Bắc mùa thu 2026">
-          <input type="date" id="v7-new-start">
-          <input type="date" id="v7-new-end">
-          <input type="text" id="v7-new-vehicle" placeholder="Phương tiện, ví dụ: Hyundai Tucson">
-          <input type="text" id="v7-new-startpoint" placeholder="Điểm xuất phát">
-          <input type="text" id="v7-new-endpoint" placeholder="Điểm về đích">
-        </div>
-        <div class="btn-group">
-          <button class="btn btn-success admin-only admin-flex" onclick="v7CreateTrip()">💾 Tạo hành trình</button>
-          <button class="btn btn-warning admin-only admin-flex" onclick="v7DuplicateCurrentTrip()">📋 Nhân bản hành trình hiện tại</button>
-        </div>
-      </div>
-
-      <div class="v6-card admin-only">
-        <h3>📥 Nhập hành trình từ Excel</h3>
-        <div class="v6-admin-note">Admin có thể chuẩn bị dữ liệu trên máy tính bằng Excel Template. App sẽ kiểm tra dữ liệu trước, cho xem trước, sau đó mới ghi thành một hành trình riêng vào Firebase.</div>
-        <div class="btn-group">
-          <a class="btn btn-dark" href="AppDuLich_Trip_Template_ver6.8.xlsx" download>📥 Tải Excel Template ver6.8</a>
-          <button class="btn btn-warning" type="button" onclick="document.getElementById('v68-excel-file').click()">📂 Chọn file Excel</button>
-        </div>
-        <input id="v68-excel-file" type="file" accept=".xlsx,.xls" style="display:none" onchange="v68ReadExcel(this.files[0])">
-        <div id="v68-excel-preview" style="margin-top:10px"></div>
-      </div>
-
-      <div class="v6-card admin-only">
-        <h3>✏️ Chỉnh sửa thông tin hành trình</h3>
-        <div class="form-grid">
-          <input type="text" id="v7-edit-title" placeholder="Tên hành trình">
-          <input type="date" id="v7-edit-start">
-          <input type="date" id="v7-edit-end">
-          <input type="text" id="v7-edit-vehicle" placeholder="Phương tiện">
-          <input type="text" id="v7-edit-startpoint" placeholder="Điểm xuất phát">
-          <input type="text" id="v7-edit-endpoint" placeholder="Điểm về đích">
-        </div>
-        <button class="btn admin-only admin-flex" onclick="v7SaveTripInfo()">💾 Lưu thông tin</button>
-      </div>
-
       <div class="v6-card">
         <h3>⚙️ Khu vực quản trị</h3>
         <div class="v6-admin-note">Khi chưa đăng nhập: toàn bộ ứng dụng ở chế độ Thành viên — chỉ xem. Sau khi đăng nhập Quản trị, các nút thêm/sửa/xóa mới được kích hoạt. Nút “Xóa chi phí mẫu” chỉ xóa dữ liệu mẫu; chi phí thực tế phải sửa/xóa ngay tại bảng Quản lý chi phí.</div>
@@ -1408,519 +1439,6 @@
       if(costDate) costDate.value='2026-08-28';
     });
 
-
-
-    /* =========================================================
-       ver6.8 DYNAMIC TRIP ENGINE
-       - Nhiều hành trình trong Firestore: trips/{tripId}
-       - Hành trình đang chọn: localStorage v7_active_trip_id
-       - Không dùng localStorage cho dữ liệu hành trình.
-       ========================================================= */
-    const V7_TRIP_COLLECTION = 'trips';
-    const V7_ACTIVE_KEY = 'v7_active_trip_id';
-    let v7Trips = [];
-    let v7ActiveTripId = null;
-    let v7ActiveTrip = null;
-    let v7TripUnsub = null;
-
-    const V7_DEFAULT_DAYS = [
-      { day:1, date:'2026-08-28', title:'Hà Nội → Thanh Hóa', departure:'17:00', summary:'Xuất phát từ Hateco Apollo · đến Thanh Hóa nhận phòng nghỉ đêm 1.', overnight:'TP Thanh Hóa', activities:[
-        {time:'17:00',title:'Xuất phát',description:'Hateco Apollo Xuân Phương, Hà Nội'},
-        {time:'22:00',title:'Nhận phòng',description:'TP Thanh Hóa · nghỉ đêm 1'}
-      ]},
-      { day:2, date:'2026-08-29', title:'Thanh Hóa → Đồng Hới → Hội An', departure:'05:00', summary:'Ngày di chuyển dài · ăn trưa tại Đồng Hới · tối đến Hội An.', overnight:'Hội An', activities:[
-        {time:'05:00 - 07:00',title:'Khởi hành',description:'Thanh Hóa → Đồng Hới'},
-        {time:'Trưa',title:'Ăn trưa',description:'Đồng Hới'},
-        {time:'Chiều',title:'Tiếp tục di chuyển',description:'Đồng Hới → Hội An'},
-        {time:'Tối',title:'Nhận phòng',description:'Hội An · nghỉ đêm 2'}
-      ]},
-      { day:3, date:'2026-08-30', title:'Hội An → Huế', departure:'16:00', summary:'Khám phá Hội An buổi sáng · chiều di chuyển sang Huế.', overnight:'Huế', activities:[
-        {time:'Sáng & Trưa',title:'Khám phá Hội An',description:'Phố cổ Hội An & Rừng dừa Bảy Mẫu'},
-        {time:'16:00 - 17:00',title:'Khởi hành',description:'Hội An → TP Huế'},
-        {time:'Tối',title:'Nghỉ đêm',description:'Ăn tối, thưởng thức ẩm thực Cố đô · nghỉ đêm 3'}
-      ]},
-      { day:4, date:'2026-08-31', title:'Khám phá Cố đô Huế', departure:'', summary:'Tham quan Đại Nội, lăng tẩm, Chùa Thiên Mụ và trung tâm Huế.', overnight:'Huế', activities:[
-        {time:'Cả ngày',title:'Tham quan',description:'Đại Nội, các Lăng tẩm, Chùa Thiên Mụ'},
-        {time:'Tối',title:'Tự do',description:'Dạo phố, ngắm sông Hương · nghỉ đêm 4'}
-      ]},
-      { day:5, date:'2026-09-01', title:'Huế → Đồng Hới → Hà Tĩnh', departure:'08:00', summary:'Di chuyển về phía Bắc · dừng ăn trưa tại Đồng Hới · nghỉ đêm Hà Tĩnh.', overnight:'Hà Tĩnh', activities:[
-        {time:'08:00',title:'Khởi hành',description:'Huế → Hà Tĩnh'},
-        {time:'Trưa',title:'Ăn trưa',description:'Dừng tại Đồng Hới'},
-        {time:'Chiều tối',title:'Nhận phòng',description:'Hà Tĩnh · nghỉ đêm 5'}
-      ]},
-      { day:6, date:'2026-09-02', title:'Hà Tĩnh → Hà Nội', departure:'08:00', summary:'Chặng cuối · về Hateco Apollo và kết thúc chuyến đi an toàn.', overnight:'', activities:[
-        {time:'Sáng',title:'Khởi hành',description:'Hà Tĩnh → Hà Nội'},
-        {time:'Chiều',title:'Về đích',description:'Hateco Apollo · kết thúc chuyến đi'}
-      ]}
-    ];
-
-    const V7_DEFAULT_POINTS = defaultPoints.map(p => ({...p}));
-    const V7_DEFAULT_MEMBERS = [{name:'Nguyễn Tiến Duẩn',phone:'098x xxx xxx',role:'Trưởng đoàn / Lái chính'}];
-
-    function v7DateLabel(iso){
-      if(!iso) return '';
-      const d=new Date(iso+'T00:00:00');
-      if(isNaN(d)) return iso;
-      return d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'});
-    }
-    function v7DaysNights(trip){
-      const n=(trip?.days||[]).length;
-      return n ? `${n} ngày ${Math.max(0,n-1)} đêm` : '0 ngày';
-    }
-    function v7TripSummary(trip){
-      if(!trip) return '';
-      const days=trip.days||[];
-      const route=(trip.points||[]).map(p=>String(p.name||'').replace(/^\d+\.\s*/,''));
-      return `${v7DateLabel(trip.startDate)} → ${v7DateLabel(trip.endDate)} · ${v7DaysNights(trip)}<br>${v6Esc(route.join(' → '))}`;
-    }
-    function v7MakeDefaultTrip(){
-      return {
-        title:'Hành trình miền Trung 2026',
-        startDate:'2026-08-28', endDate:'2026-09-02', vehicle:'Hyundai Tucson',
-        startPoint:'Hateco Apollo Xuân Phương, Hà Nội', endPoint:'Hateco Apollo Xuân Phương, Hà Nội',
-        points:V7_DEFAULT_POINTS, days:V7_DEFAULT_DAYS, members:V7_DEFAULT_MEMBERS,
-        chatMessages:[{user:'HỆ THỐNG',text:'Chào mừng cả đoàn đến với kênh trao đổi chuyến đi!',time:'10:00'}],
-        createdAt:firebase.firestore.FieldValue.serverTimestamp(), updatedAt:firebase.firestore.FieldValue.serverTimestamp()
-      };
-    }
-
-    async function v7EnsureDefaultTrip(){
-      const snap=await db.collection(V7_TRIP_COLLECTION).limit(1).get();
-      if(!snap.empty) return snap.docs[0].id;
-      if(!v6IsAdmin()) return null;
-      const [pSnap,mSnap,cSnap]=await Promise.all([
-        db.collection('trip_data').doc('points').get(),
-        db.collection('trip_data').doc('members').get(),
-        db.collection('trip_data').doc('chat').get()
-      ]);
-      const base=v7MakeDefaultTrip();
-      if(pSnap.exists && Array.isArray(pSnap.data().list) && pSnap.data().list.length) base.points=pSnap.data().list;
-      if(mSnap.exists && Array.isArray(mSnap.data().list) && mSnap.data().list.length) base.members=mSnap.data().list;
-      if(cSnap.exists && Array.isArray(cSnap.data().list) && cSnap.data().list.length) base.chatMessages=cSnap.data().list;
-      const ref=await db.collection(V7_TRIP_COLLECTION).add(base);
-      return ref.id;
-    }
-
-    function v7RenderTripSelector(){
-      const sel=document.getElementById('v7-trip-selector');
-      if(!sel) return;
-      sel.innerHTML=v7Trips.length ? v7Trips.map(t=>`<option value="${v6Esc(t.id)}">${v6Esc(v68EffectiveTitle(t))} · ${v6Esc(v7DateLabel(t.startDate))}</option>`).join('') : '<option value="">— Chưa có hành trình —</option>';
-      if(v7ActiveTripId && v7Trips.some(t=>t.id===v7ActiveTripId)) sel.value=v7ActiveTripId;
-      else if(v7Trips[0]) sel.value=v7Trips[0].id;
-      const list=document.getElementById('v7-trip-list');
-      if(list){
-        list.innerHTML=v7Trips.map(t=>`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid #edf2f7;font-size:12px"><div><b>${v6Esc(v68EffectiveTitle(t))}</b><br><span style="color:#718096">${v6Esc(v7DateLabel(t.startDate))} → ${v6Esc(v7DateLabel(t.endDate))} · ${(t.days||[]).length} ngày</span></div><div class="v6-actions">${v6IsAdmin()?`<button class="v6-mini v6-edit" onclick="v7SelectTrip('${t.id}')">Mở</button><button class="v6-mini v6-del" onclick="v7DeleteTrip('${t.id}')">Xóa</button>`:''}</div></div>`).join('');
-      }
-    }
-
-    function v7SubscribeActiveTrip(id){
-      if(!id) return;
-      v7ActiveTripId=id;
-      localStorage.setItem(V7_ACTIVE_KEY,id);
-      v7RenderTripSelector();
-      if(v7TripUnsub) v7TripUnsub();
-      v7TripUnsub=db.collection(V7_TRIP_COLLECTION).doc(id).onSnapshot(doc=>{
-        if(!doc.exists) return;
-        v7ActiveTrip={id:doc.id,...doc.data()};
-        v7RenderActiveTrip();
-        v7MigrateLegacyExpenses().catch(()=>{});
-      },err=>console.error('Lỗi đọc hành trình:',err));
-    }
-
-    function v7SelectTrip(id){
-      if(!id) return;
-      v7SubscribeActiveTrip(id);
-    }
-
-    function v68RouteTitle(points){
-      const names=(points||[]).map(p=>String(p.name||'').replace(/^\\s*\\d+\\.\\s*/,'').trim()).filter(Boolean);
-      if(!names.length)return 'HÀNH TRÌNH MỚI';
-      const text=names.join(' → ');
-      return (text.length>110 ? names.slice(0,2).join(' → ')+' → … → '+names.slice(-2).join(' → ') : text).toUpperCase();
-    }
-    function v68EffectiveTitle(trip){
-      return String(trip?.title||'').trim() || v68RouteTitle(trip?.points||[]);
-    }
-
-    async function v7CreateTrip(){
-      if(!v7RequireAdmin()) return;
-      let title=document.getElementById('v7-new-title').value.trim();
-      const startDate=document.getElementById('v7-new-start').value;
-      const endDate=document.getElementById('v7-new-end').value;
-      const vehicle=document.getElementById('v7-new-vehicle').value.trim();
-      const startPoint=document.getElementById('v7-new-startpoint').value.trim();
-      const endPoint=document.getElementById('v7-new-endpoint').value.trim() || startPoint;
-      if(!startDate||!endDate||!startPoint){
-        return alert('Vui lòng nhập ngày bắt đầu, ngày kết thúc và điểm xuất phát. Tên hành trình có thể để trống để App tự tạo theo tuyến.');
-      }
-      if(endDate<startDate)return alert('Ngày kết thúc không được trước ngày bắt đầu.');
-      const initialTitle=title || 'HÀNH TRÌNH MỚI';
-      try{
-        const ref=await db.collection(V7_TRIP_COLLECTION).add({
-          title:title || '',
-          startDate,endDate,vehicle,startPoint,endPoint,
-          points:[],days:[],attractions:[],members:[],
-          chatMessages:[{user:'HỆ THỐNG',text:`Đã tạo hành trình: ${initialTitle}. Hãy thêm các điểm tuyến để hoàn thiện tên tự động.`,time:new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}],
-          createdAt:firebase.firestore.FieldValue.serverTimestamp(),
-          updatedAt:firebase.firestore.FieldValue.serverTimestamp()
-        });
-        ['v7-new-title','v7-new-start','v7-new-end','v7-new-vehicle','v7-new-startpoint','v7-new-endpoint'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-        localStorage.setItem(V7_ACTIVE_KEY,ref.id);
-        v7SubscribeActiveTrip(ref.id);
-        alert('Đã tạo hành trình mới trên Firebase và chuyển sang hành trình vừa tạo.');
-      }catch(err){
-        console.error('[V7] Tạo hành trình thất bại:',err);
-        alert('Không thể tạo hành trình: '+(err.message||err));
-      }
-    }
-
-    async function v7DuplicateCurrentTrip(){
-      if(!v7RequireActiveTrip()||!v7ActiveTrip)return;
-      const copy=JSON.parse(JSON.stringify(v7ActiveTrip));
-      delete copy.id; delete copy.createdAt; delete copy.updatedAt;
-      copy.title=(copy.title||'Hành trình')+' — Bản sao';
-      copy.createdAt=firebase.firestore.FieldValue.serverTimestamp(); copy.updatedAt=firebase.firestore.FieldValue.serverTimestamp();
-      const ref=await db.collection(V7_TRIP_COLLECTION).add(copy);
-      v7SelectTrip(ref.id); alert('Đã nhân bản hành trình.');
-    }
-
-    async function v7SaveTripInfo(){
-      if(!v7RequireActiveTrip()||!v7ActiveTripId)return;
-      const data={title:document.getElementById('v7-edit-title').value.trim(),startDate:document.getElementById('v7-edit-start').value,endDate:document.getElementById('v7-edit-end').value,vehicle:document.getElementById('v7-edit-vehicle').value.trim(),startPoint:document.getElementById('v7-edit-startpoint').value.trim(),endPoint:document.getElementById('v7-edit-endpoint').value.trim(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
-      if(!data.title||!data.startDate||!data.endDate||!data.startPoint)return alert('Vui lòng nhập đủ thông tin cơ bản.');
-      await db.collection(V7_TRIP_COLLECTION).doc(v7ActiveTripId).update(data); alert('Đã lưu thông tin hành trình.');
-    }
-
-    async function v7DeleteTrip(id){
-      if(!v7RequireAdmin())return;
-      if(v7Trips.length<=1)return alert('Không thể xóa hành trình cuối cùng.');
-      const t=v7Trips.find(x=>x.id===id);
-      if(!confirm(`Xóa hành trình “${t?.title||''}”? Dữ liệu hành trình này sẽ bị xóa.`))return;
-      await db.collection(V7_TRIP_COLLECTION).doc(id).delete();
-      if(v7ActiveTripId===id){const next=v7Trips.find(x=>x.id!==id);if(next)v7SelectTrip(next.id);}
-    }
-
-    function v7RenderTripInfoForm(){
-      const t=v7ActiveTrip;if(!t)return;
-      const vals={title:t.title||'',start:t.startDate||'',end:t.endDate||'',vehicle:t.vehicle||'',startpoint:t.startPoint||'',endpoint:t.endPoint||''};
-      Object.entries(vals).forEach(([k,v])=>{const e=document.getElementById('v7-edit-'+k);if(e)e.value=v;});
-    }
-
-    function v7RenderActiveTrip(){
-      const t=v7ActiveTrip;if(!t)return;
-      const days=t.days||[];
-      const points=t.points||[];
-      document.getElementById('app-title').textContent=v68EffectiveTitle(t)+' · AppDuLich ver6.8';
-      document.getElementById('app-header-title').textContent=v68EffectiveTitle(t).toUpperCase();
-      document.getElementById('app-header-subtitle').innerHTML=v7TripSummary(t);
-      document.getElementById('v7-home-title').textContent='🌄 '+v68EffectiveTitle(t);
-      document.getElementById('v7-home-subtitle').innerHTML=v7TripSummary(t)+(t.vehicle?'<br>🚗 '+v6Esc(t.vehicle):'');
-      document.getElementById('v6-day-count').textContent=days.length+' ngày';
-      document.getElementById('legacy-schedule-title').textContent='📅 Lịch Trình Chi Tiết '+v7DaysNights(t);
-      document.getElementById('v7-schedule-title').textContent='📅 Lịch trình '+v7DaysNights(t);
-      v7RenderDays(days);
-      v7RenderLegacySchedule(days);
-      v7RenderTripInfoForm();
-      renderPointsTable(points,null);
-      renderRoadRouting(points);
-      v7RenderChat(t.chatMessages||[]);
-      renderMembers(t.members||[]);
-      v7RenderTripSelector();
-      if(typeof v6RefreshPayerLists==='function')v6RefreshPayerLists();
-    }
-
-    function v7RenderDays(days){
-      const home=document.getElementById('v7-home-days');
-      const sched=document.getElementById('v7-schedule-days');
-      if(!home||!sched)return;
-      const html=days.length?days.map(d=>`<div class="v6-day"><b>NGÀY ${d.day||''} · ${v7DateLabel(d.date)}</b><p>${v6Esc(d.title||'')} · ${v6Esc(d.summary||'')}${d.overnight?' · nghỉ đêm '+v6Esc(d.overnight):''}</p></div>`).join(''):'<div class="v6-empty">Chưa có ngày nào. Quản trị viên có thể thêm ngày ở phiên bản Trip Editor tiếp theo.</div>';
-      home.innerHTML=html;
-      sched.innerHTML=days.length?days.map(d=>`<div class="v6-day"><b>NGÀY ${d.day||''} · ${v7DateLabel(d.date)}${d.title?' · '+v6Esc(d.title):''}</b>${d.summary?`<p>${v6Esc(d.summary)}</p>`:''}${(d.activities||[]).map(a=>`<p>• <b>${v6Esc(a.time||'')}</b> ${v6Esc(a.title||'')}${a.description?' — '+v6Esc(a.description):''}</p>`).join('')}${d.overnight?`<p>🏨 Nghỉ đêm: ${v6Esc(d.overnight)}</p>`:''}</div>`).join(''):'<div class="v6-empty">Chưa có lịch trình.</div>';
-    }
-
-    function v7RenderLegacySchedule(days){
-      const box=document.getElementById('legacy-schedule-timeline');if(!box)return;
-      box.innerHTML=days.length?days.map(d=>`<div class="timeline-item"><div class="timeline-date">NGÀY ${d.day||''}: ${v7DateLabel(d.date)}</div><div class="timeline-title">${v6Esc(d.title||'')}</div><div class="timeline-desc">${(d.activities||[]).map(a=>`• <b>${v6Esc(a.time||'')}</b>: ${v6Esc(a.title||'')}${a.description?' — '+v6Esc(a.description):''}`).join('<br>')}${d.overnight?`<br>• <b>Nghỉ đêm:</b> ${v6Esc(d.overnight)}`:''}</div></div>`).join(''):'<div class="v6-empty">Chưa có lịch trình.</div>';
-    }
-
-    function v7RenderChat(messages){
-      const chatBox=document.getElementById('chat-messages');if(!chatBox)return;
-      const myName=(localStorage.getItem('chat_my_name')||'').trim().toUpperCase();chatBox.innerHTML='';
-      (messages||[]).forEach(msg=>{let u=(msg.user||'').trim().toUpperCase();let type=u==='HỆ THỐNG'?'system':(myName&&u===myName?'mine':'other');chatBox.innerHTML+=`<div class="chat-msg ${type}"><div class="msg-info"><b>${v6Esc(msg.user)}</b> • ${v6Esc(msg.dateTime||msg.time||'')}</div><div class="bubble">${v6Esc(msg.text)}</div></div>`;});chatBox.scrollTop=chatBox.scrollHeight;
-    }
-
-    // Quyền Admin và trạng thái Active Trip là 2 điều kiện khác nhau.
-    // Tạo/Xóa hành trình chỉ cần Admin; chỉnh sửa điểm/lịch/thành viên/chi phí
-    // mới cần thêm một Active Trip. Đây là điểm sửa quan trọng của ver6.8.
-    function v7RequireAdmin(){
-      if(!v6IsAdmin()){
-        alert('Bạn đang ở chế độ Thành viên. Vui lòng đăng nhập Quản trị để thực hiện thao tác này.');
-        return false;
-      }
-      return true;
-    }
-    function v7RequireActiveTrip(){
-      if(!v7RequireAdmin()) return false;
-      if(!v7ActiveTripId || !v7ActiveTrip){
-        alert('Chưa có hành trình đang được tải. Hãy chọn hoặc tạo một hành trình trước.');
-        return false;
-      }
-      return true;
-    }
-
-    function v7SavePoints(points){
-      if(!v7RequireActiveTrip())return Promise.reject(new Error('Chưa có quyền hoặc hành trình đang chọn.'));
-      return db.collection(V7_TRIP_COLLECTION).doc(v7ActiveTripId).update({
-        points,
-        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
-      }).catch(err=>{
-        console.error('[V7] Không lưu được điểm tuyến:',err);
-        alert('Không thể lưu điểm vào Firebase: '+(err.message||err));
-        throw err;
-      });
-    }
-    function addCustomPoint(){
-      if(!v7RequireActiveTrip())return;
-      const name=document.getElementById('point-name').value.trim(),desc=document.getElementById('point-desc').value.trim(),lat=parseFloat(document.getElementById('point-lat').value),lng=parseFloat(document.getElementById('point-lng').value);
-      if(!name||isNaN(lat)||isNaN(lng))return alert('Vui lòng nhập Tên điểm, Vĩ độ và Kinh độ!');
-      const points=[...(v7ActiveTrip?.points||[])];
-      const item={name,lat,lng,desc};
-      if(points.length)points.splice(Math.max(0,points.length-1),0,item);else points.push(item);
-      v7SavePoints(points).then(()=>{
-        ['point-name','point-desc','point-lat','point-lng'].forEach(id=>{
-          const el=document.getElementById(id);
-          if(el)el.value='';
-        });
-      }).catch(()=>{});
-    }
-    function deletePoint(index){
-      if(!v7RequireActiveTrip())return;const points=[...(v7ActiveTrip?.points||[])];if(points.length<=2)return alert('Lộ trình cần ít nhất 2 điểm!');points.splice(index,1);v7SavePoints(points);
-    }
-    function resetDefaultPoints(){
-      if(!v7RequireActiveTrip())return;if(confirm('Khôi phục các điểm chuẩn của hành trình hiện tại?'))v7SavePoints(V7_DEFAULT_POINTS.map(p=>({...p})));
-    }
-
-    function addMember(){
-      if(!v7RequireActiveTrip())return;const name=document.getElementById('member-name').value.trim(),phone=document.getElementById('member-phone').value.trim(),role=document.getElementById('member-role').value.trim()||'Thành viên';if(!name)return alert('Vui lòng nhập họ tên!');
-      const members=[...(v7ActiveTrip?.members||[]),{name,phone,role}];db.collection(V7_TRIP_COLLECTION).doc(v7ActiveTripId).update({members,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(()=>{['member-name','member-phone','member-role'].forEach(id=>document.getElementById(id).value='');});
-    }
-    function deleteMember(index){
-      if(!v7RequireActiveTrip())return;const members=[...(v7ActiveTrip?.members||[])];members.splice(index,1);db.collection(V7_TRIP_COLLECTION).doc(v7ActiveTripId).update({members,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
-    }
-    function sendChatMessage(){
-      if(!v7RequireActiveTrip())return;
-      const userInput=document.getElementById('chat-user').value.trim().toUpperCase(),textInput=document.getElementById('chat-text').value.trim();if(!userInput)return alert('Vui lòng nhập Họ tên!');if(!textInput)return alert('Vui lòng nhập nội dung nhắn!');localStorage.setItem('chat_my_name',userInput);
-      const now=new Date(),dateStr=now.toLocaleDateString('vi-VN'),timeStr=now.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});const messages=[...(v7ActiveTrip?.chatMessages||[]),{user:userInput,text:textInput,time:timeStr,dateTime:dateStr+' '+timeStr}];db.collection(V7_TRIP_COLLECTION).doc(v7ActiveTripId).update({chatMessages:messages,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(()=>document.getElementById('chat-text').value='');
-    }
-
-    // Listener Dynamic Trip ver6.8. Đọc danh sách hành trình ngay khi có quyền đọc.
-    // Nếu collection trống, chỉ Admin mới được tạo hành trình mặc định từ dữ liệu V6 cũ.
-    let v7TripListUnsub=null;
-    let v7BootstrapBusy=false;
-
-    async function v7BootstrapIfNeeded(){
-      if(v7BootstrapBusy) return;
-      if(!v6IsAdmin()) return;
-      v7BootstrapBusy=true;
-      try{
-        const snap=await db.collection(V7_TRIP_COLLECTION).limit(1).get();
-        if(!snap.empty){
-          v7BootstrapBusy=false;
-          return;
-        }
-        const id=await v7EnsureDefaultTrip();
-        if(id){
-          localStorage.setItem(V7_ACTIVE_KEY,id);
-          v7SubscribeActiveTrip(id);
-        }
-      }catch(err){
-        console.error('[V7] Bootstrap hành trình thất bại:',err);
-        const status=document.getElementById('v6-db-status');
-        if(status){status.textContent='● Firebase · Chưa khởi tạo hành trình';status.style.color='#c05621';}
-      }finally{
-        v7BootstrapBusy=false;
-      }
-    }
-
-    listenFirebaseData=function(){
-      if(v7TripListUnsub)return;
-      v7TripListUnsub=db.collection(V7_TRIP_COLLECTION).onSnapshot(async snap=>{
-        v7Trips=snap.docs.map(d=>({id:d.id,...d.data()}));
-
-        if(!v7Trips.length){
-          v7ActiveTripId=null;
-          v7ActiveTrip=null;
-          v7RenderTripSelector();
-          const status=document.getElementById('v6-db-status');
-          if(status){status.textContent=v6IsAdmin()?'● Firebase · Chưa có hành trình — hãy tạo hành trình':'● Firebase · Chưa có hành trình';status.style.color='#c05621';}
-          if(v6IsAdmin()) await v7BootstrapIfNeeded();
-          return;
-        }
-
-        v7RenderTripSelector();
-        let desired=localStorage.getItem(V7_ACTIVE_KEY);
-        if(!v7Trips.some(t=>t.id===desired)) desired=v7Trips[0].id;
-        if(desired!==v7ActiveTripId) v7SubscribeActiveTrip(desired);
-      },err=>{
-        console.error('[V7] Không đọc được danh sách hành trình:',err);
-        v7TripListUnsub=null;
-        const status=document.getElementById('v6-db-status');
-        if(status){status.textContent='● Firebase · Lỗi đọc hành trình';status.style.color='#c53030';}
-      });
-    };
-
-    // Quan trọng: nếu listener đã chạy khi người dùng còn Anonymous, sau khi
-    // Admin đăng nhập không được gọi lại listener một cách vô ích. Bootstrap
-    // trực tiếp để tạo hành trình mặc định nếu collection còn trống.
-    auth.onAuthStateChanged(async()=>{
-      setTimeout(async()=>{
-        if(!v7TripListUnsub) listenFirebaseData();
-        if(v6IsAdmin() && !v7ActiveTripId && !v7Trips.length) await v7BootstrapIfNeeded();
-      },500);
-    });
-
-    // V7 chi phí: gắn từng khoản chi với hành trình, không trộn nhiều chuyến.
-    v6ListenExpenses=function(){
-      db.collection(V6_EXPENSE_COLLECTION).onSnapshot(snap=>{
-        v6Expenses=[];snap.forEach(doc=>{const x={id:doc.id,...doc.data()};if(!x.tripId||x.tripId===v7ActiveTripId)v6Expenses.push(x);});
-        v6Expenses.sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));v6RenderExpenses();
-        const status=document.getElementById('v6-db-status');if(status){status.textContent='● Firebase · Đã đồng bộ';status.style.color='#2f855a';}
-      },err=>{console.error(err);const status=document.getElementById('v6-db-status');if(status){status.textContent='● Firebase · Lỗi kết nối';status.style.color='#c53030';}});
-    };
-    const v7OldSaveExpense=v6SaveExpense;
-    v6SaveExpense=function(){
-      if(!v7RequireActiveTrip())return;const date=document.getElementById('v6-exp-date').value,category=document.getElementById('v6-exp-cat').value,description=document.getElementById('v6-exp-desc').value.trim(),amount=v6ParseMoney(document.getElementById('v6-exp-amount').value),payer=document.getElementById('v6-exp-payer').value.trim();
-      if(!date||!category||!description||!amount||amount<=0||!payer)return alert('Vui lòng nhập đầy đủ ngày, khoản mục, nội dung, số tiền và người trả.');
-      db.collection(V6_EXPENSE_COLLECTION).add({tripId:v7ActiveTripId,date,category,description,amount,payer,isDemo:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(()=>{document.getElementById('v6-exp-desc').value='';document.getElementById('v6-exp-amount').value='';document.getElementById('v6-exp-payer').value='';alert('Đã lưu khoản chi cho hành trình hiện tại.');}).catch(e=>alert('Không thể lưu khoản chi: '+e.message));
-    };
-    const v7OldOpenEdit=v6OpenEdit;
-    v6OpenEdit=function(id){if(!v7RequireActiveTrip())return;const x=v6Expenses.find(a=>a.id===id);if(!x)return;v6EditingId=id;document.getElementById('v6-edit-id').value=id;document.getElementById('v6-edit-date').value=x.date||'';document.getElementById('v6-edit-cat').value=x.category||V6_CATS[0];document.getElementById('v6-edit-desc').value=x.description||'';document.getElementById('v6-edit-amount').value=x.amount||'';document.getElementById('v6-edit-payer').value=x.payer||'';document.getElementById('v6-expense-modal').classList.add('show');};
-    v6UpdateExpense=function(){if(!v7RequireActiveTrip()||!v6EditingId)return;const data={date:document.getElementById('v6-edit-date').value,category:document.getElementById('v6-edit-cat').value,description:document.getElementById('v6-edit-desc').value.trim(),amount:v6ParseMoney(document.getElementById('v6-edit-amount').value),payer:document.getElementById('v6-edit-payer').value.trim(),tripId:v7ActiveTripId,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};if(!data.date||!data.description||!data.amount||!data.payer)return alert('Vui lòng nhập đầy đủ thông tin.');db.collection(V6_EXPENSE_COLLECTION).doc(v6EditingId).update(data).then(v6CloseModal).catch(e=>alert('Không thể cập nhật: '+e.message));};
-
-    // Tự khởi động lại listener chi phí sau khi V7 có tripId.
-    document.addEventListener('DOMContentLoaded',function(){
-      setTimeout(()=>{if(typeof v6ListenExpenses==='function')v6ListenExpenses();},300);
-    });
-
-    const v7OriginalRenderRoadRouting=renderRoadRouting;
-    renderRoadRouting=function(points){
-      if(!map)return;
-      if(!points || points.length<2 || points.some(p=>!Number.isFinite(Number(p.lat))||!Number.isFinite(Number(p.lng)))){
-        if(routingControl){try{map.removeControl(routingControl);}catch(e){} routingControl=null;}
-        clearLegBadges();
-        if(points && points.length===1 && Number.isFinite(Number(points[0].lat)) && Number.isFinite(Number(points[0].lng))) map.setView([Number(points[0].lat),Number(points[0].lng)],10);
-        return;
-      }
-      v7OriginalRenderRoadRouting(points);
-    };
-
-    const v7OriginalRenderExpenses=v6RenderExpenses;
-    v6RenderExpenses=function(){
-      v7OriginalRenderExpenses();
-      if(v7ActiveTrip && v7ActiveTrip.days){
-        const el=document.getElementById('v6-cost-dayavg');
-        if(el){const total=v6Expenses.reduce((sum,x)=>sum+Number(x.amount||0),0);el.textContent=v6Money(total/Math.max(1,v7ActiveTrip.days.length));}
-      }
-    };
-
-    async function v7MigrateLegacyExpenses(){
-      if(!v7ActiveTripId)return;
-      const snap=await db.collection(V6_EXPENSE_COLLECTION).get().catch(()=>null);
-      if(!snap)return;
-      const batch=db.batch();let n=0;
-      snap.forEach(doc=>{const x=doc.data()||{};if(!x.tripId){batch.update(doc.ref,{tripId:v7ActiveTripId,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});n++;}});
-      if(n)await batch.commit();
-    }
-
-
-    /* =========================================================
-       ver6.8 EXCEL IMPORT
-       ========================================================= */
-    let v68PendingExcel=null;
-    function v68Cell(v){return v==null?'':String(v).trim();}
-    function v68ParseDate(v){
-      if(typeof v==='number' && window.XLSX){const d=XLSX.SSF.parse_date_code(v);if(d)return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;}
-      const x=v68Cell(v); if(/^\d{4}-\d{2}-\d{2}$/.test(x))return x;
-      const m=x.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
-      return m?`${m[3]}-${String(m[2]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`:'';
-    }
-    function v68ParseTime(v){
-      if(typeof v==='number'){const n=Math.round(v*1440);return `${String(Math.floor(n/60)%24).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`;}
-      const x=v68Cell(v),m=x.match(/(\d{1,2})[:hH](\d{1,2})/);return m?`${String(m[1]).padStart(2,'0')}:${String(m[2]).padStart(2,'0')}`:x;
-    }
-    function v68Rows(wb,name){const ws=wb.Sheets[name];return ws?XLSX.utils.sheet_to_json(ws,{header:1,defval:''}):[];}
-    function v68Head(r){const o={};r.forEach((v,i)=>o[v68Cell(v).toLowerCase()]=i);return o;}
-    function v68Need(h,names){for(const n of names){if(h[n.toLowerCase()]!==undefined)return h[n.toLowerCase()];}return -1;}
-
-    async function v68ReadExcel(file){
-      if(!v7RequireAdmin()||!file)return;
-      const box=document.getElementById('v68-excel-preview');
-      if(!window.XLSX){box.innerHTML='<div class="v68-preview err">Không tải được thư viện Excel. Hãy tải lại trang.</div>';return;}
-      try{
-        const wb=XLSX.read(await file.arrayBuffer(),{type:'array'}), errors=[], info={};
-        const ir=v68Rows(wb,'THONG_TIN'); ir.slice(1).forEach(r=>{if(v68Cell(r[0]))info[v68Cell(r[0])]=r[1];});
-        const start=v68ParseDate(info['Ngày bắt đầu']), end=v68ParseDate(info['Ngày kết thúc']);
-        if(!start)errors.push('THONG_TIN: thiếu hoặc sai Ngày bắt đầu.');
-        if(!end)errors.push('THONG_TIN: thiếu hoặc sai Ngày kết thúc.');
-        if(start&&end&&end<start)errors.push('THONG_TIN: Ngày kết thúc trước Ngày bắt đầu.');
-
-        const rr=v68Rows(wb,'LO_TRINH'), rh=v68Head(rr[0]||[]);
-        const ni=v68Need(rh,['tên điểm']), la=v68Need(rh,['vĩ độ']), ln=v68Need(rh,['kinh độ']), de=v68Need(rh,['mô tả / ghi chú']), ti=v68Need(rh,['thời gian dự kiến']);
-        if(ni<0||la<0||ln<0)errors.push('LO_TRINH: thiếu cột Tên điểm, Vĩ độ hoặc Kinh độ.');
-        const points=[];
-        rr.slice(1).forEach((r,i)=>{
-          if(ni<0||!v68Cell(r[ni]))return;
-          const lat=Number(r[la]),lng=Number(r[ln]);
-          if(!Number.isFinite(lat)||lat<-90||lat>90)errors.push(`LO_TRINH dòng ${i+2}: Vĩ độ không hợp lệ.`);
-          if(!Number.isFinite(lng)||lng<-180||lng>180)errors.push(`LO_TRINH dòng ${i+2}: Kinh độ không hợp lệ.`);
-          points.push({name:v68Cell(r[ni]),lat,lng,desc:de>=0?v68Cell(r[de]):'',time:ti>=0?v68ParseTime(r[ti]):''});
-        });
-        if(points.length<2)errors.push('LO_TRINH: cần ít nhất 2 điểm.');
-
-        const lr=v68Rows(wb,'LICH_TRINH'), lh=v68Head(lr[0]||[]), days={};
-        const dayI=v68Need(lh,['ngày']), dateI=v68Need(lh,['ngày thực hiện']), timeI=v68Need(lh,['thời gian']), typeI=v68Need(lh,['loại']), titleI=v68Need(lh,['tiêu đề']), descI=v68Need(lh,['nội dung']), nightI=v68Need(lh,['nghỉ đêm']);
-        lr.slice(1).forEach(r=>{
-          if(dayI<0)return; const day=Number(r[dayI]); if(!day)return;
-          if(!days[day])days[day]={day,date:dateI>=0?v68ParseDate(r[dateI]):'',title:'',summary:'',overnight:nightI>=0?v68Cell(r[nightI]):'',activities:[]};
-          const a={time:timeI>=0?v68ParseTime(r[timeI]):'',type:typeI>=0?v68Cell(r[typeI]):'',title:titleI>=0?v68Cell(r[titleI]):'',description:descI>=0?v68Cell(r[descI]):''};
-          if(a.title||a.description)days[day].activities.push(a);
-          if(!days[day].title)days[day].title=a.title;
-          if(!days[day].overnight&&nightI>=0)days[day].overnight=v68Cell(r[nightI]);
-        });
-
-        const ar=v68Rows(wb,'DIEM_THAM_QUAN'), ah=v68Head(ar[0]||[]), attractions=[];
-        const an=v68Need(ah,['tên điểm']),ap=v68Need(ah,['tỉnh/tp']),alat=v68Need(ah,['vĩ độ']),alng=v68Need(ah,['kinh độ']),aty=v68Need(ah,['loại']),ades=v68Need(ah,['mô tả']),adur=v68Need(ah,['thời gian tham quan']);
-        ar.slice(1).forEach(r=>{if(an<0||!v68Cell(r[an]))return;attractions.push({name:v68Cell(r[an]),province:ap>=0?v68Cell(r[ap]):'',lat:alat>=0?Number(r[alat]):null,lng:alng>=0?Number(r[alng]):null,type:aty>=0?v68Cell(r[aty]):'',desc:ades>=0?v68Cell(r[ades]):'',duration:adur>=0?v68Cell(r[adur]):''});});
-
-        const data={title:v68Cell(info['Tên hành trình']),startDate:start,endDate:end,vehicle:v68Cell(info['Phương tiện']),startPoint:v68Cell(info['Điểm xuất phát'])||points[0]?.name||'',endPoint:v68Cell(info['Điểm kết thúc'])||points.at(-1)?.name||'',notes:v68Cell(info['Ghi chú']),points,days:Object.values(days).sort((a,b)=>a.day-b.day),attractions,members:[],chatMessages:[]};
-        if(!data.title)data.title='';
-        const displayTitle=data.title||v68RouteTitle(points);
-        v68PendingExcel=data;
-        if(errors.length){
-          v68PendingExcel=null;
-          box.innerHTML='<div class="v68-preview err"><b>🔴 FILE CÓ LỖI</b><ul>'+errors.map(e=>`<li>${v6Esc(e)}</li>`).join('')+'</ul><p>Hãy sửa Excel rồi chọn lại file.</p></div>';
-          return;
-        }
-        const totalDays=data.days.length||((new Date(end)-new Date(start))/86400000+1);
-        box.innerHTML=`<div class="v68-preview ok"><b>🟢 DỮ LIỆU HỢP LỆ</b><div class="v68-import-summary"><div><b>${points.length}</b><span>điểm tuyến</span></div><div><b>${data.days.length}</b><span>ngày lịch trình</span></div><div><b>${attractions.length}</b><span>điểm tham quan</span></div></div><p><b>Tiêu đề:</b> ${v6Esc(displayTitle)}<br><b>Thời gian:</b> ${v6Esc(v7DateLabel(start))} → ${v6Esc(v7DateLabel(end))} · ${totalDays} ngày</p><button class="btn btn-success" type="button" onclick="v68ImportExcel()">💾 NHẬP VÀO FIREBASE</button></div>`;
-      }catch(e){console.error(e);v68PendingExcel=null;box.innerHTML='<div class="v68-preview err"><b>🔴 Không đọc được Excel</b><br>'+v6Esc(e.message||e)+'</div>';}
-    }
-    async function v68ImportExcel(){
-      if(!v7RequireAdmin()||!v68PendingExcel)return;
-      const data={...v68PendingExcel,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
-      const ref=await db.collection(V7_TRIP_COLLECTION).add(data);
-      v68PendingExcel=null;
-      document.getElementById('v68-excel-preview').innerHTML='<div class="v68-preview ok"><b>✅ Đã nhập hành trình vào Firebase.</b></div>';
-      v7SelectTrip(ref.id);
-      alert('Nhập hành trình từ Excel thành công.');
-    }
-
-    const v7OldSeed=v6SeedCostDemo;
-    v6SeedCostDemo=function(){
-      if(!v7RequireAdmin()||!v7ActiveTripId)return;
-      const demo=[['2026-08-28','Xăng','Đổ xăng xe 01',1200000,'Duẩn'],['2026-08-28','Lưu trú','Khách sạn Thanh Hóa',1600000,'Giang'],['2026-08-29','Ăn uống','Ăn trưa Đồng Hới',950000,'Duẩn'],['2026-08-29','Vé đường bộ','Phí cao tốc',350000,'Duẩn'],['2026-08-30','Vé tham quan','Vé tham quan Hội An',700000,'Giang'],['2026-08-30','Gửi xe','Gửi xe Hội An',120000,'Duẩn']];
-      const batch=db.batch();demo.forEach(d=>{const ref=db.collection(V6_EXPENSE_COLLECTION).doc();batch.set(ref,{tripId:v7ActiveTripId,date:d[0],category:d[1],description:d[2],amount:d[3],payer:d[4],isDemo:true,createdAt:firebase.firestore.FieldValue.serverTimestamp()});});batch.commit().then(()=>alert('Đã tạo dữ liệu mẫu cho hành trình hiện tại.')).catch(e=>alert(e.message));
-    };
   </script>
 </body>
 </html>
