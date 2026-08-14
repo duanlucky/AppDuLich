@@ -2,377 +2,411 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Quản Lý Hành Trình Du Lịch Đa Chuyến Đi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hệ Thống Quản Lý Chuyến Đi - Multi-Trip</title>
   
-  <!-- Leaflet CSS & JS -->
+  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- Leaflet Routing Machine CSS & JS -->
+  <!-- Leaflet Routing Machine CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
-  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
-
-  <!-- Firebase App & Firestore CDN (Compat Version) -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-    body { background-color: #f4f6f8; padding: 8px; color: #333; -webkit-tap-highlight-color: transparent; }
-    .container { max-width: 980px; margin: 0 auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    
-    .header { text-align: center; margin-bottom: 18px; border-bottom: 2px solid #007bff; padding-bottom: 12px; }
-    .header h1 { color: #1a365d; font-size: 20px; margin-bottom: 6px; line-height: 1.3; }
-    .header p { color: #4a5568; font-size: 13px; font-weight: 500; }
-    
-    /* Thanh chọn chuyến đi */
-    .trip-selector-bar { background: #eef2f7; border: 1px solid #cbd5e0; padding: 12px; border-radius: 8px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; }
-    .trip-selector-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .trip-selector-row select { flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e0; font-size: 14px; background: white; }
-
-    /* Thanh trạng thái đăng nhập */
-    .admin-bar { display: flex; flex-direction: column; gap: 10px; background: #edf2f7; padding: 10px 12px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; text-align: center; }
-    .admin-bar-btns { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; width: 100%; }
-    .badge-role { font-weight: 700; padding: 4px 8px; border-radius: 6px; display: inline-block; }
-    .role-user { background: #e2e8f0; color: #4a5568; }
-    .role-admin { background: #c53030; color: white; }
-
-    .card { background: #ffffff; border: 1px solid #e2e8f0; padding: 14px; border-radius: 10px; margin-bottom: 15px; }
-    .card h2 { color: #2b6cb0; font-size: 16px; margin-bottom: 12px; }
-    
-    .form-grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 10px; }
-    input[type="text"], input[type="number"], input[type="password"], input[type="date"], select { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; -webkit-appearance: none; }
-    
-    .summary-box { background: #ebf8ff; border: 1px solid #bee3f8; padding: 12px; border-radius: 8px; margin-bottom: 12px; font-weight: bold; color: #2b6cb0; display: flex; flex-direction: column; gap: 8px; text-align: center; }
-    .summary-item span { display: block; font-size: 18px; color: #2c5282; margin-top: 2px; }
-
-    .btn-group { display: flex; flex-direction: column; gap: 8px; }
-    .btn { display: inline-block; width: 100%; text-align: center; background: #3182ce; color: white; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; text-decoration: none; transition: background 0.2s; }
-    .btn:active { opacity: 0.85; }
-    .btn-success { background: #38a169; }
-    .btn-danger { background: #e53e3e; color: white; border: none; padding: 6px 10px; font-size: 12px; border-radius: 4px; cursor: pointer; }
-    .btn-warning { background: #ed8936; }
-    .btn-dark { background: #4a5568; }
-    
-    #map { height: 380px; width: 100%; border-radius: 8px; border: 1px solid #cbd5e0; margin-top: 12px; z-index: 1; }
-    .leaflet-routing-container { display: none !important; }
-    
-    .custom-div-icon, .leg-badge-icon { background: transparent; border: none; }
-
-    .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
-    table { width: 100%; border-collapse: collapse; min-width: 500px; }
-    th, td { border: 1px solid #e2e8f0; padding: 8px 6px; text-align: left; font-size: 12px; line-height: 1.4; }
-    th { background: #f7fafc; color: #2d3748; font-weight: 700; }
-
-    /* Admin UI */
-    .admin-only { display: none !important; }
-    body.is-admin .admin-only { display: grid !important; }
-    body.is-admin .admin-flex { display: flex !important; }
-    body.is-admin .admin-col { display: table-cell !important; }
-    body:not(.is-admin) .admin-col { display: none !important; }
-
-    /* Khung Chat Online */
-    .chat-box { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; }
-    .chat-messages { height: 260px; overflow-y: auto; background: white; border: 1px solid #cbd5e0; border-radius: 6px; padding: 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
-    
-    .chat-msg { display: flex; flex-direction: column; max-width: 75%; }
-    .chat-msg.mine { align-self: flex-end; align-items: flex-end; }
-    .chat-msg.other { align-self: flex-start; align-items: flex-start; }
-    .chat-msg.system { align-self: center; align-items: center; max-width: 90%; width: 100%; }
-
-    .chat-msg .msg-info { font-size: 10px; color: #a0aec0; margin-bottom: 2px; }
-    .chat-msg .bubble { padding: 8px 12px; border-radius: 12px; font-size: 13px; word-break: break-word; line-height: 1.4; }
-    .chat-msg.mine .bubble { background: #007bff; color: white; border-top-right-radius: 2px; }
-    .chat-msg.other .bubble { background: #edf2f7; color: #2d3748; border-top-left-radius: 2px; }
-    .chat-msg.system .bubble { background: #e2e8f0; color: #4a5568; font-style: italic; text-align: center; border-radius: 6px; font-size: 12px; }
-
-    /* V6 Navigation & UI */
-    .v6-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:0 0 15px;position:sticky;top:6px;z-index:20}
-    .v6-nav button{border:1px solid #dbe5ef;background:#fff;color:#334e68;border-radius:10px;padding:10px 6px;font-weight:700;font-size:12px;cursor:pointer;box-shadow:0 2px 7px rgba(0,0,0,.04)}
-    .v6-nav button.active{background:#1f6feb;color:#fff;border-color:#1f6feb}
-    .v6-hero{background:linear-gradient(135deg,#eaf4ff,#f7fbff);border:1px solid #cfe3f7;border-radius:14px;padding:15px;margin-bottom:15px}
-    .v6-hero-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-    .v6-hero h2{font-size:20px;color:#163a5f;margin:0 0 5px}
-    .v6-hero p{font-size:12px;color:#52677d;line-height:1.5}
-    .v6-pills{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
-    .v6-pill{background:#fff;border:1px solid #d8e6f2;border-radius:10px;padding:9px;text-align:center}
-    .v6-pill b{display:block;font-size:16px;color:#1f4e79}
-    .v6-pill span{font-size:10px;color:#718096}
-    .v6-section{display:none}
-    .v6-section.active{display:block}
-    .v6-card{background:#fff;border:1px solid #e1e8f0;border-radius:12px;padding:14px;margin-bottom:15px;box-shadow:0 2px 8px rgba(0,0,0,.035)}
-    .v6-card h3{font-size:15px;color:#244b6b;margin-bottom:10px}
-    .v6-table{width:100%;border-collapse:collapse}
-    .v6-table th,.v6-table td{border-bottom:1px solid #edf2f7;padding:9px 6px;font-size:12px;text-align:left;vertical-align:top}
-    .v6-table th{background:#f8fafc;color:#52606d}
-    .v6-actions{display:flex;gap:5px;flex-wrap:wrap}
-    .v6-mini{padding:5px 8px;border:0;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700}
-    .v6-edit{background:#fff3cd;color:#8a5a00}
-    .v6-del{background:#ffe3e3;color:#b42318}
-    .v6-empty{padding:18px;text-align:center;color:#718096;font-size:12px;background:#f8fafc;border-radius:9px}
-    .v6-expense-grid{display:grid;grid-template-columns:1fr;gap:8px}
-    .v6-cost-summary{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
-    .v6-cost-box{background:#f8fbff;border:1px solid #d9e8f5;border-radius:9px;padding:9px;text-align:center}
-    .v6-cost-box b{display:block;color:#1f4e79;font-size:15px}
-    .v6-cost-box span{font-size:10px;color:#718096}
-    .v6-cat-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #edf2f7;font-size:12px}
-    .v6-bar{height:7px;background:#edf2f7;border-radius:10px;overflow:hidden;margin:4px 0}
-    .v6-bar i{display:block;height:100%;background:#3182ce;border-radius:10px}
-    .v6-admin-note{font-size:11px;color:#718096;background:#f8fafc;padding:8px;border-radius:8px;margin-bottom:10px}
-    .v6-day{border-left:3px solid #3182ce;padding:9px 10px;margin-bottom:9px;background:#f8fbff;border-radius:0 8px 8px 0}
-    .v6-day b{color:#24557b;font-size:13px}
-    .v6-day p{font-size:11px;color:#52677d;line-height:1.5;margin-top:3px}
-    
-    .admin-login-modal{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:center;justify-content:center;padding:15px;z-index:200}
-    .admin-login-modal.show{display:flex}
-    .admin-login-box{width:100%;max-width:420px;background:#fff;border-radius:14px;padding:18px;box-shadow:0 15px 40px rgba(0,0,0,.18)}
-    .admin-login-box h3{color:#1f4e79;margin-bottom:12px}
-    .admin-login-box label{display:block;font-size:12px;font-weight:700;color:#52606d;margin:10px 0 5px}
-    .admin-login-box input{width:100%;padding:11px;border:1px solid #cbd5e0;border-radius:8px;font-size:14px}
-    .admin-login-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
-    .admin-login-error{display:none;color:#c53030;background:#fff5f5;border:1px solid #fed7d7;border-radius:8px;padding:8px;font-size:12px;margin-top:10px}
-
-    @media(min-width:600px){
-      body { padding: 15px; }
-      .container { padding: 25px; border-radius: 16px; }
-      .header h1 { font-size: 26px; }
-      .admin-bar { flex-direction: row; justify-content: space-between; text-align: left; }
-      .v6-nav{grid-template-columns:repeat(6,1fr)}
-      .v6-pills{grid-template-columns:repeat(4,1fr)}
-      .v6-expense-grid{grid-template-columns:repeat(2,1fr)}
-      .v6-cost-summary{grid-template-columns:repeat(4,1fr)}
-      #map { height: 500px; }
+    :root {
+      --primary: #1a365d;
+      --secondary: #2b6cb0;
+      --accent: #319795;
+      --bg: #f7fafc;
+      --text: #2d3748;
+      --danger: #e53e3e;
+      --success: #38a169;
     }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: var(--bg); color: var(--text); line-height: 1.5; padding-bottom: 40px; }
+    
+    header { background: var(--primary); color: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    header h1 { font-size: 20px; display: flex; align-items: center; gap: 10px; }
+    
+    .header-controls { display: flex; align-items: center; gap: 12px; }
+    .badge-role { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+    .role-user { background: #4a5568; color: white; }
+    .role-admin { background: var(--success); color: white; }
+    
+    /* Trip Selector Bar */
+    .v6-trip-selector-bar { background: #2a4365; color: white; padding: 10px 25px; display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: wrap; border-bottom: 1px solid #1a365d; }
+    .v6-trip-selector-bar select { padding: 6px 12px; border-radius: 4px; border: none; font-weight: bold; background: white; color: var(--primary); font-size: 14px; outline: none; cursor: pointer; }
+
+    .btn { background: var(--secondary); color: white; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 13px; transition: opacity 0.2s; display: inline-flex; align-items: center; gap: 5px; }
+    .btn:hover { opacity: 0.9; }
+    .btn-danger { background: var(--danger); }
+    .btn-success { background: var(--success); }
+    .btn-outline { background: transparent; border: 1px solid currentColor; color: inherit; }
+
+    /* Nav Tabs */
+    .v6-nav { display: flex; background: #e2e8f0; padding: 5px 15px; gap: 5px; overflow-x: auto; border-bottom: 1px solid #cbd5e0; }
+    .v6-nav button { background: none; border: none; padding: 10px 18px; font-weight: 600; color: #4a5568; cursor: pointer; border-radius: 4px 4px 0 0; white-space: nowrap; font-size: 14px; }
+    .v6-nav button.active { background: white; color: var(--primary); border-top: 3px solid var(--primary); }
+
+    .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
+    .v6-section { display: none; background: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .v6-section.active { display: block; }
+
+    /* Admin visibility control */
+    .admin-only { display: none !important; }
+    body.is-admin .admin-only { display: inline-flex !important; }
+    body.is-admin tr .admin-only { display: table-cell !important; }
+    body.is-admin div.admin-only { display: block !important; }
+
+    /* Map & Tables */
+    #map { height: 450px; width: 100%; border-radius: 6px; margin-bottom: 20px; z-index: 1; }
+    .table-container { overflow-x: auto; margin-top: 15px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; }
+    th { background: #f7fafc; color: var(--primary); }
+
+    /* Chat Box */
+    .chat-container { display: flex; flex-direction: column; height: 400px; border: 1px solid #e2e8f0; border-radius: 6px; }
+    .chat-messages { flex: 1; padding: 15px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 10px; }
+    .chat-msg { max-width: 75%; padding: 8px 12px; border-radius: 8px; font-size: 14px; }
+    .chat-msg.mine { align-self: flex-end; background: #ebf8ff; border: 1px: #bee3f8; }
+    .chat-msg.other { align-self: flex-start; background: white; border: 1px solid #e2e8f0; }
+    .chat-msg.system { align-self: center; background: #edf2f7; color: #718096; font-size: 12px; border-radius: 4px; }
+    .chat-input-bar { display: flex; padding: 10px; background: white; border-top: 1px solid #e2e8f0; gap: 10px; }
+    .chat-input-bar input { flex: 1; padding: 8px 12px; border: 1px solid #cbd5e0; border-radius: 4px; outline: none; }
+
+    /* Cost Dashboard */
+    .cost-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .cost-card { background: #f8fafc; padding: 15px; border-radius: 6px; border-left: 4px solid var(--secondary); }
+    .cost-card h4 { font-size: 13px; color: #718096; margin-bottom: 5px; }
+    .cost-card .value { font-size: 20px; font-weight: bold; color: var(--primary); }
+
+    .v6-bar { background: #e2e8f0; height: 8px; border-radius: 4px; margin-top: 5px; overflow: hidden; }
+    .v6-bar i { display: block; height: 100%; background: var(--accent); width: 0%; }
+    .v6-cat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 14px; }
+
+    /* Modals */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+    .modal.show { display: flex; }
+    .modal-content { background: white; padding: 25px; border-radius: 8px; width: 100%; max-width: 450px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .modal-content h3 { margin-bottom: 15px; color: var(--primary); }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #cbd5e0; border-radius: 4px; font-size: 14px; }
+
+    .error-msg { background: #fff5f5; color: var(--danger); padding: 10px; border-radius: 4px; font-size: 13px; margin-bottom: 12px; border: 1px solid #feb2b2; display: none; }
   </style>
 </head>
 <body>
 
+  <!-- Top Header -->
+  <header>
+    <h1>🚗 Hệ Thống Quản Lý Chuyến Đi (Multi-Trip)</h1>
+    <div class="header-controls">
+      <span id="role-display" class="badge-role role-user">Thành viên · Chỉ xem</span>
+      <span id="admin-email-display" style="font-size: 13px; display: none;"></span>
+      <button id="btn-login-admin" class="btn btn-outline" onclick="openAdminLogin()">Đăng nhập QTV</button>
+      <button id="btn-logout-admin" class="btn btn-danger" style="display: none;" onclick="logoutAdmin()">Đăng xuất</button>
+    </div>
+  </header>
+
+  <!-- Trip Switcher Bar -->
+  <div class="v6-trip-selector-bar">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <label for="current-trip-select"><b>Hành trình hiện tại:</b></label>
+      <select id="current-trip-select" onchange="switchTrip(this.value)">
+        <!-- Dynamic options loaded from Firestore -->
+      </select>
+    </div>
+    <div class="admin-only">
+      <button class="btn btn-success" onclick="openNewTripModal()">+ Tạo hành trình mới</button>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="v6-nav">
+    <button class="active" onclick="v6Show('overview', this)">Tổng quan chuyến đi</button>
+    <button onclick="v6Show('route', this)">Bản đồ & Lộ trình</button>
+    <button onclick="v6Show('expenses', this)">Quản lý Chi phí</button>
+    <button onclick="v6Show('members', this)">Thành viên đoàn</button>
+    <button onclick="v6Show('chat', this)">Trao đổi / Chat</button>
+  </div>
+
   <div class="container">
-    <div class="header">
-      <h1 id="main-trip-title">HÀNH TRÌNH DU LỊCH ĐA CHUYẾN ĐI</h1>
-      <p id="main-trip-subtitle">Chọn hoặc tạo chuyến đi mới để bắt đầu lên kế hoạch</p>
-    </div>
 
-    <!-- Thanh chọn chuyến đi duy nhất -->
-    <div class="trip-selector-bar">
-      <div class="trip-selector-row">
-        <label style="font-weight:700; font-size:13px; color:#2b6cb0;">Chuyến đi:</label>
-        <select id="trip-select" onchange="switchActiveTrip(this.value)">
-          <option value="">-- Đang tải danh sách chuyến đi... --</option>
-        </select>
-        <button class="btn btn-success admin-only admin-flex" style="width:auto; padding:8px 12px;" onclick="openNewTripModal()">➕ Tạo Chuyến Đi Mới</button>
+    <!-- 1. OVERVIEW SECTION -->
+    <div id="v6-overview" class="v6-section active">
+      <h2 id="trip-title-display" style="color: var(--primary); margin-bottom: 10px;">Đang tải thông tin hành trình...</h2>
+      <p id="trip-desc-display" style="color: #4a5568; margin-bottom: 20px;"></p>
+      
+      <div class="cost-grid">
+        <div class="cost-card">
+          <h4>Tổng chi phí thực tế</h4>
+          <div class="value" id="v6-cost-total">0 đ</div>
+        </div>
+        <div class="cost-card">
+          <h4>Tổng quãng đường</h4>
+          <div class="value" id="v6-total-km">0 km</div>
+        </div>
+        <div class="cost-card">
+          <h4>Số thành viên</h4>
+          <div class="value" id="v6-member-count">0</div>
+        </div>
+        <div class="cost-card">
+          <h4>Trạng thái dữ liệu</h4>
+          <div class="value" id="v6-db-status" style="font-size: 14px; color: #2f855a; margin-top: 5px;">● Đang kết nối...</div>
+        </div>
       </div>
     </div>
-  
-    <!-- Thanh Quyền Hạn -->
-    <div class="admin-bar">
-      <div>
-        Quyền: <span id="role-display" class="badge-role role-user">Thành Viên (Chỉ Xem)</span>
-        <span id="admin-email-display" style="display:none;margin-left:6px;color:#52677d;font-size:12px"></span>
+
+    <!-- 2. ROUTE SECTION -->
+    <div id="v6-route" class="v6-section">
+      <h3 style="margin-bottom: 15px; color: var(--primary);">Bản đồ Chỉ đường & Điểm dừng</h3>
+      <div id="map"></div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+        <h4 style="color: var(--primary);">Danh sách điểm dừng trong lộ trình</h4>
+        <div class="admin-only" style="display: flex; gap: 8px;">
+          <button class="btn btn-outline" onclick="resetDefaultPoints()">Khôi phục mẫu</button>
+        </div>
       </div>
-      <div class="admin-bar-btns">
-        <button id="btn-login-admin" class="btn btn-warning" onclick="openAdminLogin()">🔐 Đăng Nhập Quản Trị</button>
-        <button id="btn-logout-admin" class="btn btn-danger admin-only admin-flex" onclick="logoutAdmin()">Thoát Quản Trị</button>
+
+      <!-- Admin Add Point Form -->
+      <div class="admin-only" style="background: #f7fafc; padding: 15px; border-radius: 6px; margin-bottom: 15px; border: 1px dashed #cbd5e0;">
+        <h4 style="font-size: 14px; margin-bottom: 10px; color: var(--primary);">Thêm điểm dừng mới</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 10px;">
+          <input type="text" id="point-name" placeholder="Tên điểm dừng" style="padding: 6px; border: 1px solid #cbd5e0; border-radius: 4px;">
+          <input type="text" id="point-lat" placeholder="Vĩ độ (Lat, VD: 21.0477)" style="padding: 6px; border: 1px solid #cbd5e0; border-radius: 4px;">
+          <input type="text" id="point-lng" placeholder="Kinh độ (Lng, VD: 105.7344)" style="padding: 6px; border: 1px solid #cbd5e0; border-radius: 4px;">
+          <input type="text" id="point-desc" placeholder="Mô tả / Thời gian" style="padding: 6px; border: 1px solid #cbd5e0; border-radius: 4px;">
+        </div>
+        <button class="btn btn-success" onclick="addCustomPoint()">+ Thêm điểm vào lộ trình</button>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Địa điểm</th>
+              <th>Tọa độ</th>
+              <th>Ghi chú</th>
+              <th>Khoảng cách chặng</th>
+              <th class="admin-only">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="route-points-list"></tbody>
+        </table>
+      </div>
+
+      <div style="margin-top: 15px; font-weight: bold; color: var(--primary);">
+        Tổng cộng hành trình: <span id="total-distance">0 km</span> — Thời gian di chuyển dự tính: <span id="total-time">0 giờ 0 phút</span>
       </div>
     </div>
 
-    <!-- V6 Navigation Menu -->
-    <div class="v6-nav">
-      <button class="active" onclick="v6Show('home',this)">🏠 Tổng quan</button>
-      <button onclick="v6Show('route',this)">🗺️ Lộ trình</button>
-      <button onclick="v6Show('schedule',this)">📅 Lịch trình</button>
-      <button onclick="v6Show('members',this)">👥 Thành viên</button>
-      <button onclick="v6Show('cost',this)">💰 Chi phí</button>
-      <button onclick="v6Show('tools',this)">⚙️ Quản trị</button>
+    <!-- 3. EXPENSES SECTION -->
+    <div id="v6-expenses" class="v6-section">
+      <h3 style="margin-bottom: 15px; color: var(--primary);">Quản lý Tài chính & Chi tiêu Chuyến đi</h3>
+
+      <div class="cost-grid" style="margin-bottom: 25px;">
+        <div class="cost-card">
+          <h4>Tổng chi thực tế</h4>
+          <div class="value" id="v6-cost-total2">0 đ</div>
+        </div>
+        <div class="cost-card">
+          <h4>Số khoản chi</h4>
+          <div class="value" id="v6-cost-count">0</div>
+        </div>
+        <div class="cost-card">
+          <h4>Trung bình mỗi khoản</h4>
+          <div class="value" id="v6-cost-avg">0 đ</div>
+        </div>
+        <div class="cost-card">
+          <h4>Ước tính / ngày</h4>
+          <div class="value" id="v6-cost-dayavg">0 đ</div>
+        </div>
+      </div>
+
+      <h4 style="margin-bottom: 10px; color: var(--primary);">Chi tiết theo khoản mục</h4>
+      <div id="v6-cost-cats" style="margin-bottom: 25px;"></div>
+
+      <!-- Add Expense Form (Admin) -->
+      <div class="admin-only" style="background: #f7fafc; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px dashed #cbd5e0;">
+        <h4 style="font-size: 14px; margin-bottom: 10px; color: var(--primary);">Ghi nhận khoản chi mới</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 10px;">
+          <input type="date" id="v6-exp-date" style="padding: 6px; border: 1px solid #cbd5e0; border-radius: 4px;">
+          <select id="v6-exp-cat" style="padding: 6px; border: 1px solid #cbd5e0; border-radius: 4px;">
+            <option value="Xăng">Xăng</option>
+            <option value="Lưu trú">Lưu trú</option>
+            <option value="Ăn uống">Ăn uống</option>
+            <option value="Vé tham quan">Vé tham quan</option>
+            <option value="Quà lưu niệm">Quà lưu niệm</option>
+            <option value="Vé đường bộ">Vé đường bộ</option>
+            <option value="Gửi xe">Gửi xe</option>
+          </select>
+          <input type="text" id="v6-exp-desc" placeholder="Nội dung chi tiêu" style="padding: 6px; border: 1px solid #cbd5e0; border-radius: 4px;">
+          <input type="text" id="v6-exp-amount" placeholder="Số tiền (VNĐ)" oninput="v6FormatMoneyInput(this)" style="padding: 6px; border: 1px solid #cbd5e0; border-radius: 4px;">
+          <input type="text" id="v6-exp-payer" list="v6-member-payer-list" placeholder="Người trả tiền" style="padding: 6px; border: 1px solid #cbd5e0; border-radius: 4px;">
+          <datalist id="v6-member-payer-list"></datalist>
+        </div>
+        <button class="btn btn-success" onclick="v6SaveExpense()">+ Lưu khoản chi</button>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Ngày</th>
+              <th>Khoản mục</th>
+              <th>Nội dung</th>
+              <th>Người trả</th>
+              <th>Số tiền</th>
+              <th class="admin-only">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="v6-expense-list"></tbody>
+        </table>
+      </div>
     </div>
 
-    <!-- TAB 1: TỔNG QUAN -->
-    <section id="v6-home" class="v6-section active">
-      <div class="v6-hero">
-        <div class="v6-hero-top">
-          <div>
-            <h2 id="hero-title">Đang chọn chuyến đi</h2>
-            <p id="hero-desc">Thông tin tổng quan chuyến đi...</p>
-          </div>
-          <span class="v6-admin-badge" id="v6-role-badge">THÀNH VIÊN</span>
+    <!-- 4. MEMBERS SECTION -->
+    <div id="v6-members" class="v6-section">
+      <h3 style="margin-bottom: 15px; color: var(--primary);">Danh sách Thành viên Đoàn</h3>
+
+      <!-- Add Member Form (Admin) -->
+      <div class="admin-only" style="background: #f7fafc; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px dashed #cbd5e0;">
+        <h4 style="font-size: 14px; margin-bottom: 10px; color: var(--primary);">Thêm thành viên đoàn</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 10px;">
+          <input type="text" id="member-name" placeholder="Họ và tên" style="padding: 6px; border: 1px solid #cbd5e0; border-radius: 4px;">
+          <input type="text" id="member-phone" placeholder="Số điện thoại" style="padding: 6px; border: 1px solid #cbd5e0; border-radius: 4px;">
+          <input type="text" id="member-role" placeholder="Vai trò (VD: Lái xe, Thủ quỹ)" style="padding: 6px; border: 1px solid #cbd5e0; border-radius: 4px;">
         </div>
-        <div class="v6-pills">
-          <div class="v6-pill"><b id="v6-total-km">0 km</b><span>Quãng đường</span></div>
-          <div class="v6-pill"><b id="v6-member-count">0</b><span>Thành viên</span></div>
-          <div class="v6-pill"><b id="v6-cost-total">0 đ</b><span>Tổng chi phí</span></div>
+        <button class="btn btn-success" onclick="addMember()">+ Thêm thành viên</button>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Họ tên</th>
+              <th>Số điện thoại</th>
+              <th>Vai trò</th>
+              <th class="admin-only">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="member-list"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 5. CHAT SECTION -->
+    <div id="v6-chat" class="v6-section">
+      <h3 style="margin-bottom: 15px; color: var(--primary);">Kênh Trao đổi / Chat Trực tuyến</h3>
+      <div class="chat-container">
+        <div id="chat-messages" class="chat-messages"></div>
+        <div class="chat-input-bar">
+          <input type="text" id="chat-user" placeholder="Họ tên của bạn..." style="max-width: 160px;">
+          <input type="text" id="chat-text" placeholder="Nhập nội dung trao đổi..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+          <button class="btn" onclick="sendChatMessage()">Gửi tin</button>
         </div>
       </div>
-    </section>
-
-    <!-- TAB 2: LỘ TRÌNH & BẢN ĐỒ -->
-    <section id="v6-route" class="v6-section">
-      <div class="card">
-        <h2>🗺️ Lộ Trình & Tính Quãng Đường</h2>
-        <div class="summary-box">
-          <div class="summary-item">Tổng Quãng Đường: <span id="total-distance">0 km</span></div>
-          <div class="summary-item">Thời Gian Lái Ước Tính: <span id="total-time">0 giờ</span></div>
-        </div>
-
-        <div class="form-grid admin-only">
-          <input type="text" id="point-name" placeholder="Tên điểm đến mới">
-          <input type="text" id="point-desc" placeholder="Mô tả / Ghi chú">
-          <input type="number" step="any" id="point-lat" placeholder="Vĩ độ (Lat)">
-          <input type="number" step="any" id="point-lng" placeholder="Kinh độ (Lng)">
-        </div>
-        <div class="btn-group admin-only admin-flex" style="margin-bottom: 12px;">
-          <button class="btn" onclick="addCustomPoint()">➕ Thêm Điểm Vào Lộ Trình</button>
-        </div>
-
-        <h3 style="font-size: 14px; margin-top: 10px;">📍 Danh Sách Các Điểm Dừng:</h3>
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th style="width: 35px;">STT</th>
-                <th>Tên Điểm</th>
-                <th class="col-coord">Tọa Độ</th>
-                <th>Mô Tả</th>
-                <th>Chặng Tiếp Theo</th>
-                <th class="admin-col">Xóa</th>
-              </tr>
-            </thead>
-            <tbody id="route-points-list"></tbody>
-          </table>
-        </div>
-        <div id="map"></div>
-      </div>
-    </section>
-
-    <!-- TAB 3: LỊCH TRÌNH -->
-    <section id="v6-schedule" class="v6-section">
-      <div class="card">
-        <h2>📅 Lịch Trình Chi Tiết Chuyến Đi</h2>
-        <div class="form-grid admin-only" style="margin-bottom:12px;">
-          <input type="text" id="sched-day" placeholder="Tiêu đề ngày (VD: Ngày 1: 28/08/2026)">
-          <input type="text" id="sched-title" placeholder="Tên hoạt động chính">
-          <input type="text" id="sched-desc" placeholder="Mô tả chi tiết các khung giờ">
-          <button class="btn btn-success" onclick="addScheduleItem()">Thêm Lịch Trình</button>
-        </div>
-        <div class="timeline" id="schedule-timeline-list" style="border-left: 2px solid #3182ce; padding-left: 12px;"></div>
-      </div>
-    </section>
-
-    <!-- TAB 4: THÀNH VIÊN -->
-    <section id="v6-members" class="v6-section">
-      <div class="card">
-        <h2>👥 Thành Viên Trong Đoàn</h2>
-        <div class="form-grid admin-only">
-          <input type="text" id="member-name" placeholder="Họ và tên">
-          <input type="text" id="member-phone" placeholder="Số điện thoại">
-          <input type="text" id="member-role" placeholder="Vai trò (VD: Lái chính)">
-        </div>
-        <button class="btn btn-success admin-only admin-flex" onclick="addMember()" style="margin-bottom: 12px;">➕ Thêm Thành Viên</button>
-
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Họ Tên</th>
-                <th>SĐT</th>
-                <th>Vai Trò</th>
-                <th class="admin-col">Thao Tác</th>
-              </tr>
-            </thead>
-            <tbody id="member-list"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 5: CHI PHÍ -->
-    <section id="v6-cost" class="v6-section">
-      <div class="card">
-        <h3>💰 Quản lý chi phí thực tế chuyến đi</h3>
-        <div class="v6-cost-summary">
-          <div class="v6-cost-box"><b id="v6-cost-total2">0 đ</b><span>Tổng cộng</span></div>
-          <div class="v6-cost-box"><b id="v6-cost-count">0</b><span>Khoản chi</span></div>
-        </div>
-        
-        <div id="v6-cost-admin-form" class="admin-only" style="margin-top:10px;">
-          <div class="v6-expense-grid">
-            <input type="date" id="v6-exp-date">
-            <select id="v6-exp-cat">
-              <option>Xăng</option><option>Lưu trú</option><option>Ăn uống</option><option>Vé tham quan</option><option>Khác</option>
-            </select>
-            <input type="text" id="v6-exp-desc" placeholder="Nội dung khoản chi">
-            <input type="text" id="v6-exp-amount" placeholder="Số tiền (VNĐ)" oninput="v6FormatMoneyInput(this)">
-            <input type="text" id="v6-exp-payer" placeholder="Người trả">
-          </div>
-          <button class="btn btn-success" style="margin-top:8px" onclick="v6SaveExpense()">💾 Lưu khoản chi</button>
-        </div>
-
-        <div class="table-container" style="margin-top:12px">
-          <table class="v6-table">
-            <thead><tr><th>Ngày</th><th>Khoản mục</th><th>Nội dung</th><th>Người trả</th><th>Số tiền</th><th class="admin-col">Thao tác</th></tr></thead>
-            <tbody id="v6-expense-list"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 6: QUẢN TRỊ & CHAT -->
-    <section id="v6-tools" class="v6-section">
-      <div class="card">
-        <h3>💬 Trò Chuyện Online Theo Chuyến Đi</h3>
-        <div class="chat-box">
-          <div class="chat-messages" id="chat-messages"></div>
-          <div class="form-grid" style="grid-template-columns: 1fr 2fr auto; gap: 6px;">
-            <input type="text" id="chat-user" placeholder="HỌ TÊN" style="text-transform: uppercase;">
-            <input type="text" id="chat-text" placeholder="Nhập tin nhắn..." onkeypress="if(event.key === 'Enter') sendChatMessage()">
-            <button class="btn btn-success" onclick="sendChatMessage()">Gửi 📤</button>
-          </div>
-        </div>
-      </div>
-    </section>
+    </div>
 
   </div>
 
-  <!-- MODAL TẠO CHUYẾN ĐI MỚI -->
-  <div id="trip-modal" class="admin-login-modal">
-    <div class="admin-login-box">
-      <h3>➕ Tạo Chuyến Đi Mới</h3>
-      <label>Tên Chuyến Đi</label>
-      <input id="new-trip-name" type="text" placeholder="VD: Du lịch Nha Trang 2026">
-      <label>Mô Tả / Thời Gian</label>
-      <input id="new-trip-desc" type="text" placeholder="VD: 4 ngày 3 đêm (10/09 - 13/09/2026)">
-      <div class="admin-login-actions">
-        <button class="btn btn-dark" onclick="closeNewTripModal()">Hủy</button>
-        <button class="btn btn-success" onclick="createNewTrip()">Tạo Mới</button>
+  <!-- ADMIN LOGIN MODAL -->
+  <div id="admin-login-modal" class="modal">
+    <div class="modal-content">
+      <h3>Đăng nhập Quản Trị Viên</h3>
+      <div id="admin-login-error" class="error-msg"></div>
+      <div class="form-group">
+        <label>Email quản trị</label>
+        <input type="email" id="admin-login-email" placeholder="admin@domain.com">
       </div>
-    </div>
-  </div>
-
-  <!-- MODAL ĐĂNG NHẬP -->
-  <div id="admin-login-modal" class="admin-login-modal" onclick="if(event.target===this) closeAdminLogin()">
-    <div class="admin-login-box">
-      <h3>🔐 Đăng nhập Quản trị</h3>
-      <label>Email</label>
-      <input id="admin-login-email" type="email" placeholder="admin@example.com">
-      <label>Mật khẩu</label>
-      <input id="admin-login-password" type="password" placeholder="Mật khẩu">
-      <div id="admin-login-error" class="admin-login-error"></div>
-      <div class="admin-login-actions">
-        <button class="btn btn-dark" onclick="closeAdminLogin()">Hủy</button>
+      <div class="form-group">
+        <label>Mật khẩu</label>
+        <input type="password" id="admin-login-password" placeholder="••••••••">
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+        <button class="btn btn-outline" onclick="closeAdminLogin()">Hủy</button>
         <button class="btn btn-success" onclick="loginAdmin()">Đăng nhập</button>
       </div>
     </div>
   </div>
 
+  <!-- CREATE NEW TRIP MODAL (ADMIN) -->
+  <div id="new-trip-modal" class="modal">
+    <div class="modal-content">
+      <h3>Tạo Hành Trình Mới</h3>
+      <div class="form-group">
+        <label>Mã định danh (ID viết liền không dấu, VD: trip_tay_bac_2026)</label>
+        <input type="text" id="new-trip-id" placeholder="trip_tay_bac_2026">
+      </div>
+      <div class="form-group">
+        <label>Tên hành trình</label>
+        <input type="text" id="new-trip-name" placeholder="Hành trình Khám phá Tây Bắc">
+      </div>
+      <div class="form-group">
+        <label>Ngày bắt đầu</label>
+        <input type="text" id="new-trip-start" placeholder="DD/MM/YYYY (VD: 10/10/2026)">
+      </div>
+      <div class="form-group">
+        <label>Mô tả ngắn</label>
+        <textarea id="new-trip-desc" rows="2" placeholder="Hành trình đi qua các tỉnh miền núi phía bắc..."></textarea>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+        <button class="btn btn-outline" onclick="closeNewTripModal()">Hủy</button>
+        <button class="btn btn-success" onclick="createNewTripSubmit()">Tạo chuyến đi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT EXPENSE MODAL -->
+  <div id="v6-expense-modal" class="modal">
+    <div class="modal-content">
+      <h3>Chỉnh sửa khoản chi</h3>
+      <input type="hidden" id="v6-edit-id">
+      <div class="form-group"><label>Ngày</label><input type="date" id="v6-edit-date"></div>
+      <div class="form-group"><label>Khoản mục</label>
+        <select id="v6-edit-cat">
+          <option value="Xăng">Xăng</option>
+          <option value="Lưu trú">Lưu trú</option>
+          <option value="Ăn uống">Ăn uống</option>
+          <option value="Vé tham quan">Vé tham quan</option>
+          <option value="Quà lưu niệm">Quà lưu niệm</option>
+          <option value="Vé đường bộ">Vé đường bộ</option>
+          <option value="Gửi xe">Gửi xe</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Nội dung</label><input type="text" id="v6-edit-desc"></div>
+      <div class="form-group"><label>Số tiền (VNĐ)</label><input type="text" id="v6-edit-amount" oninput="v6FormatMoneyInput(this)"></div>
+      <div class="form-group"><label>Người trả</label><input type="text" id="v6-edit-payer" list="v6-member-payer-edit-list"><datalist id="v6-member-payer-edit-list"></datalist></div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+        <button class="btn btn-outline" onclick="v6CloseModal()">Hủy</button>
+        <button class="btn btn-success" onclick="v6UpdateExpense()">Cập nhật</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <!-- Leaflet & Routing JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
   <script>
+    // ==========================================
+    // CẤU HÌNH FIREBASE
+    // ==========================================
     const firebaseConfig = {
       apiKey: "AIzaSyCnBeyTJa9ljNv9uajQOWJuHyYZp3Mwrt0",
       authDomain: "appdulich-d2203.firebaseapp.com",
       projectId: "appdulich-d2203",
       storageBucket: "appdulich-d2203.firebasestorage.app",
       messagingSenderId: "709157497489",
-      appId: "1:709157497489:web:decfd9bb170a5eb931ed30"
+      appId: "1:709157497489:web:decfd9bb170a5eb931ed30",
+      measurementId: "G-N7PRCXJG8E"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -381,139 +415,233 @@
 
     let currentUser = null;
     let isAdminUser = false;
-    let currentTripId = localStorage.getItem('active_trip_id') || 'default_trip';
-    let unsubscribers = [];
+    let currentTripId = localStorage.getItem('v6_current_trip_id') || 'trip_2026_summer';
+    let activeListeners = [];
 
     let map = null;
     let routingControl = null;
     let legBadgeMarkers = [];
     let fallbackPolyline = null;
 
+    const defaultPoints = [
+      { name: "1. Hateco Apollo (Xuân Phương)", lat: 21.0477, lng: 105.7344, desc: "Xuất phát: 17:00 ngày 28/08/2026" },
+      { name: "2. TP Thanh Hoá", lat: 19.8079, lng: 105.7770, desc: "Nghỉ đêm 1" },
+      { name: "3. TP Đồng Hới", lat: 17.4661, lng: 106.6192, desc: "Dừng ăn trưa" },
+      { name: "4. Phố cổ Hội An", lat: 15.8806, lng: 108.3307, desc: "Khám phá & Nghỉ đêm" },
+      { name: "5. Thành phố Huế", lat: 16.4759, lng: 107.5891, desc: "Khám phá Huế" },
+      { name: "6. Vinpearl Hà Tĩnh", lat: 18.5054, lng: 105.8871, desc: "Nghỉ đêm" },
+      { name: "7. Hateco Apollo (Về đích)", lat: 21.0477, lng: 105.7344, desc: "Kết thúc hành trình" }
+    ];
+
+    const presetLegs = [
+      { km: 158.0, timeMin: 135 },
+      { km: 325.0, timeMin: 285 },
+      { km: 310.0, timeMin: 330 },
+      { km: 125.0, timeMin: 150 },
+      { km: 270.0, timeMin: 270 },
+      { km: 340.0, timeMin: 315 }
+    ];
+
+    const V6_CATS = ["Xăng","Lưu trú","Ăn uống","Vé tham quan","Quà lưu niệm","Vé đường bộ","Gửi xe"];
+    let v6Expenses = [];
+    let v6EditingId = null;
+
     document.addEventListener('DOMContentLoaded', function() {
       initMap();
-      loadTripsList();
-      auth.onAuthStateChanged(user => loadAdminRole(user));
+      initTripSelector();
+
+      const savedName = localStorage.getItem('chat_my_name');
+      if (savedName) document.getElementById('chat-user').value = savedName;
+      document.getElementById('chat-user').addEventListener('input', function() {
+        this.value = this.value.toUpperCase();
+        localStorage.setItem('chat_my_name', this.value.trim());
+      });
     });
 
-    // --- QUẢN LÝ ĐA CHUYẾN ĐI ---
-    function loadTripsList() {
-      db.collection("trips").onSnapshot(snapshot => {
-        const select = document.getElementById('trip-select');
-        select.innerHTML = '';
-        let foundActive = false;
+    // ==========================================
+    // QUẢN LÝ ĐA CHUYẾN ĐI (MULTI-TRIP)
+    // ==========================================
+    function initTripSelector() {
+      db.collection("trips").orderBy("startDate", "desc").onSnapshot(snap => {
+        const select = document.getElementById('current-trip-select');
+        if (!select) return;
 
-        if (snapshot.empty) {
-          // Tạo sẵn một chuyến đi mặc định nếu chưa có dữ liệu trên Firestore
-          db.collection("trips").doc("default_trip").set({
-            name: "Hành trình du lịch hè 2026",
-            desc: "Hà Nội - Thanh Hóa - Hội An - Huế - Hà Tĩnh"
-          }).then(() => loadTripsList());
+        if (snap.empty) {
+          createDefaultTripInFirestore();
           return;
         }
 
-        snapshot.forEach(doc => {
+        let options = '';
+        let tripExists = false;
+
+        snap.forEach(doc => {
           const trip = doc.data();
-          const option = document.createElement('option');
-          option.value = doc.id;
-          option.textContent = trip.name;
-          if (doc.id === currentTripId) {
-            option.selected = true;
-            foundActive = true;
-            updateTripHeader(trip);
-          }
-          select.appendChild(option);
+          const id = doc.id;
+          if (id === currentTripId) tripExists = true;
+          options += `<option value="${id}" ${id === currentTripId ? 'selected' : ''}>${v6Esc(trip.name)}</option>`;
         });
 
-        if (!foundActive && snapshot.docs.length > 0) {
-          currentTripId = snapshot.docs[0].id;
-          select.value = currentTripId;
-          updateTripHeader(snapshot.docs[0].data());
+        select.innerHTML = options;
+
+        if (!tripExists && snap.docs.length > 0) {
+          currentTripId = snap.docs[0].id;
+          localStorage.setItem('v6_current_trip_id', currentTripId);
         }
 
-        subcribeTripData(currentTripId);
+        loadTripDetailsMeta(currentTripId);
+        loadTripRealtimeData(currentTripId);
       });
     }
 
-    function switchActiveTrip(tripId) {
-      if (!tripId) return;
+    function switchTrip(tripId) {
       currentTripId = tripId;
-      localStorage.setItem('active_trip_id', tripId);
-      
+      localStorage.setItem('v6_current_trip_id', tripId);
+
+      // Clear previous listeners
+      activeListeners.forEach(unsub => unsub());
+      activeListeners = [];
+
+      loadTripDetailsMeta(tripId);
+      loadTripRealtimeData(tripId);
+    }
+
+    function loadTripDetailsMeta(tripId) {
       db.collection("trips").doc(tripId).get().then(doc => {
-        if (doc.exists) updateTripHeader(doc.data());
+        if (doc.exists) {
+          const data = doc.data();
+          document.getElementById('trip-title-display').textContent = data.name || tripId;
+          document.getElementById('trip-desc-display').textContent = data.description || '';
+        }
       });
-
-      subcribeTripData(tripId);
     }
 
-    function updateTripHeader(trip) {
-      document.getElementById('main-trip-title').textContent = trip.name;
-      document.getElementById('main-trip-subtitle').textContent = trip.desc || '';
-      document.getElementById('hero-title').textContent = trip.name;
-      document.getElementById('hero-desc').textContent = trip.desc || '';
+    async function createDefaultTripInFirestore() {
+      const defaultId = "trip_2026_summer";
+      await db.collection("trips").doc(defaultId).set({
+        name: "Hành trình Xuyên Việt 2026 (6N5Đ)",
+        startDate: "28/08/2026",
+        endDate: "02/09/2026",
+        description: "Hành trình Hateco Apollo - Thanh Hóa - Quảng Bình - Huế - Hội An - Hà Tĩnh"
+      });
+      currentTripId = defaultId;
+      localStorage.setItem('v6_current_trip_id', defaultId);
+      initTripSelector();
     }
 
-    function openNewTripModal() { document.getElementById('trip-modal').classList.add('show'); }
-    function closeNewTripModal() { document.getElementById('trip-modal').classList.remove('show'); }
+    function openNewTripModal() {
+      if (!v6IsAdmin()) return alert('Chức năng này chỉ dành cho Quản trị viên.');
+      document.getElementById('new-trip-modal').classList.add('show');
+    }
 
-    function createNewTrip() {
+    function closeNewTripModal() {
+      document.getElementById('new-trip-modal').classList.remove('show');
+    }
+
+    async function createNewTripSubmit() {
+      if (!v6IsAdmin()) return;
+      const id = document.getElementById('new-trip-id').value.trim();
       const name = document.getElementById('new-trip-name').value.trim();
-      const desc = document.getElementById('new-trip-desc').value.trim();
-      if (!name) return alert("Vui lòng nhập tên chuyến đi!");
+      const startDate = document.getElementById('new-trip-start').value.trim();
+      const description = document.getElementById('new-trip-desc').value.trim();
 
-      const newId = 'trip_' + Date.now();
-      db.collection("trips").doc(newId).set({
-        name, desc, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      }).then(() => {
+      if (!id || !name) return alert("Vui lòng nhập Mã định danh và Tên hành trình!");
+
+      try {
+        await db.collection("trips").doc(id).set({ name, startDate, description });
+        // Set default sub-collections
+        await db.collection("trips").doc(id).collection("data").doc("points").set({ list: defaultPoints });
+        await db.collection("trips").doc(id).collection("data").doc("members").set({ list: [{ name: "Nguyễn Tiến Duẩn", phone: "098x xxx xxx", role: "Trưởng đoàn" }] });
+        await db.collection("trips").doc(id).collection("data").doc("chat").set({ list: [{ user: "HỆ THỐNG", text: "Chào mừng đến với hành trình mới!", time: "10:00" }] });
+
         closeNewTripModal();
-        document.getElementById('new-trip-name').value = '';
-        document.getElementById('new-trip-desc').value = '';
-        switchActiveTrip(newId);
-      }).catch(err => alert("Lỗi tạo chuyến đi: " + err.message));
+        switchTrip(id);
+        alert("Đã tạo thành công hành trình mới!");
+      } catch (e) {
+        alert("Lỗi khi tạo hành trình: " + e.message);
+      }
     }
 
-    // --- LẮNG NGHE DỮ LIỆU THEO TỪNG CHUYẾN ĐI (TRIP ID) ---
-    function subcribeTripData(tripId) {
-      unsubscribers.forEach(unsub => unsub());
-      unsubscribers = [];
+    // ==========================================
+    // REALTIME DATA LOADERS CHO CHUYẾN ĐI
+    // ==========================================
+    function loadTripRealtimeData(tripId) {
+      const dataRef = db.collection("trips").doc(tripId).collection("data");
 
-      // 1. Lộ trình
-      unsubscribers.push(db.collection("trips").doc(tripId).collection("points").onSnapshot(snap => {
-        let points = [];
-        snap.forEach(doc => points.push({ id: doc.id, ...doc.data() }));
-        if (points.length === 0) {
-          points = [
-            { name: "1. Điểm xuất phát", lat: 21.0477, lng: 105.7344, desc: "Bắt đầu hành trình" },
-            { name: "2. Điểm đến cuối", lat: 19.8079, lng: 105.7770, desc: "Kết thúc hành trình" }
-          ];
+      // 1. Points / Lộ trình
+      let unsubPoints = dataRef.doc("points").onSnapshot(doc => {
+        let points = defaultPoints;
+        if (doc.exists && doc.data().list) {
+          points = doc.data().list;
+        } else if (v6IsAdmin()) {
+          doc.ref.set({ list: defaultPoints });
         }
         renderPointsTable(points, null);
         renderRoadRouting(points);
-      }));
+      });
+      activeListeners.push(unsubPoints);
 
-      // 2. Thành viên
-      unsubscribers.push(db.collection("trips").doc(tripId).collection("members").onSnapshot(snap => {
-        let members = [];
-        snap.forEach(doc => members.push({ id: doc.id, ...doc.data() }));
+      // 2. Members / Thành viên
+      let unsubMembers = dataRef.doc("members").onSnapshot(doc => {
+        let members = [{ name: "Nguyễn Tiến Duẩn", phone: "098x xxx xxx", role: "Trưởng đoàn / Lái chính" }];
+        if (doc.exists && doc.data().list) {
+          members = doc.data().list;
+        } else if (v6IsAdmin()) {
+          doc.ref.set({ list: members });
+        }
         renderMembers(members);
-      }));
+      });
+      activeListeners.push(unsubMembers);
 
-      // 3. Chi phí
-      unsubscribers.push(db.collection("trips").doc(tripId).collection("expenses").onSnapshot(snap => {
-        let expenses = [];
-        snap.forEach(doc => expenses.push({ id: doc.id, ...doc.data() }));
-        renderExpenses(expenses);
-      }));
-
-      // 4. Chat
-      unsubscribers.push(db.collection("trips").doc(tripId).collection("chat").onSnapshot(snap => {
-        let messages = [];
-        snap.forEach(doc => messages.push(doc.data()));
+      // 3. Chat
+      let unsubChat = dataRef.doc("chat").onSnapshot(doc => {
+        let messages = [{ user: "HỆ THỐNG", text: "Chào mừng đến với kênh trao đổi!", time: "10:00" }];
+        if (doc.exists && doc.data().list) {
+          messages = doc.data().list;
+        } else if (v6IsAdmin()) {
+          doc.ref.set({ list: messages });
+        }
         renderChatMessages(messages);
-      }));
+      });
+      activeListeners.push(unsubChat);
+
+      // 4. Expenses / Chi phí
+      const expRef = db.collection("trips").doc(tripId).collection("expenses");
+      let unsubExp = expRef.orderBy('date', 'asc').onSnapshot(snap => {
+        v6Expenses = [];
+        snap.forEach(doc => v6Expenses.push({ id: doc.id, ...doc.data() }));
+        updateDbStatus(true);
+        v6RenderExpenses();
+      }, err => {
+        expRef.onSnapshot(snap => {
+          v6Expenses = [];
+          snap.forEach(doc => v6Expenses.push({ id: doc.id, ...doc.data() }));
+          v6Expenses.sort((a,b) => String(a.date||'').localeCompare(String(b.date||'')));
+          updateDbStatus(true);
+          v6RenderExpenses();
+        });
+      });
+      activeListeners.push(unsubExp);
     }
 
-    // --- XỬ LÝ GIAO DIỆN & FIREBASE AUTH ---
+    function updateDbStatus(ok) {
+      const st = document.getElementById('v6-db-status');
+      if (st) {
+        st.textContent = ok ? '● Firebase · Đã đồng bộ' : '● Firebase · Lỗi kết nối';
+        st.style.color = ok ? '#2f855a' : '#c53030';
+      }
+    }
+
+    // ==========================================
+    // AUTH & ADMIN MANAGEMENT
+    // ==========================================
+    auth.onAuthStateChanged(async (user) => {
+      await loadAdminRole(user);
+    });
+
+    auth.onAuthStateChanged((user) => {
+      if (!user) auth.signInAnonymously().catch(e => console.error(e));
+    });
+
     async function loadAdminRole(user) {
       currentUser = user || null;
       isAdminUser = false;
@@ -521,17 +649,42 @@
         try {
           const snap = await db.collection('admin_users').doc(user.uid).get();
           isAdminUser = snap.exists && snap.data().role === 'admin';
-        } catch (e) { isAdminUser = false; }
+        } catch (e) {
+          isAdminUser = false;
+        }
       }
       checkAdminStatus();
     }
 
+    function v6IsAdmin() {
+      return !!(currentUser && !currentUser.isAnonymous && isAdminUser);
+    }
+
     function checkAdminStatus() {
-      const isAdmin = currentUser && !currentUser.isAnonymous && isAdminUser;
-      document.body.classList.toggle('is-admin', isAdmin);
-      document.getElementById('role-display').className = isAdmin ? 'badge-role role-admin' : 'badge-role role-user';
-      document.getElementById('role-display').textContent = isAdmin ? 'Quản Trị Viên' : 'Thành Viên (Chỉ Xem)';
-      document.getElementById('btn-login-admin').style.display = isAdmin ? 'none' : 'inline-block';
+      const isAdmin = v6IsAdmin();
+      const roleDisplay = document.getElementById('role-display');
+      const btnLogin = document.getElementById('btn-login-admin');
+      const emailDisplay = document.getElementById('admin-email-display');
+      const btnLogout = document.getElementById('btn-logout-admin');
+
+      if (!roleDisplay) return;
+
+      if (isAdmin) {
+        document.body.classList.add('is-admin');
+        roleDisplay.className = 'badge-role role-admin';
+        roleDisplay.innerText = 'Quản Trị Viên';
+        btnLogin.style.display = 'none';
+        if (emailDisplay) { emailDisplay.style.display = 'inline-flex'; emailDisplay.textContent = currentUser.email || ''; }
+        if (btnLogout) btnLogout.style.display = 'inline-flex';
+      } else {
+        document.body.classList.remove('is-admin');
+        roleDisplay.className = 'badge-role role-user';
+        roleDisplay.innerText = currentUser && !currentUser.isAnonymous ? 'Đã đăng nhập · Chỉ xem' : 'Thành Viên (Chỉ Xem)';
+        btnLogin.style.display = 'inline-block';
+        if (emailDisplay) emailDisplay.style.display = 'none';
+        if (btnLogout) btnLogout.style.display = 'none';
+      }
+      v6RenderExpenses();
     }
 
     function openAdminLogin() { document.getElementById('admin-login-modal').classList.add('show'); }
@@ -539,15 +692,30 @@
 
     async function loginAdmin() {
       const email = document.getElementById('admin-login-email').value.trim();
-      const pwd = document.getElementById('admin-login-password').value;
+      const password = document.getElementById('admin-login-password').value;
+      const errorEl = document.getElementById('admin-login-error');
+
+      if (!email || !password) {
+        errorEl.textContent = 'Vui lòng nhập đầy đủ email và mật khẩu.';
+        errorEl.style.display = 'block';
+        return;
+      }
+
       try {
-        const cred = await auth.signInWithEmailAndPassword(email, pwd);
+        const cred = await auth.signInWithEmailAndPassword(email, password);
         await loadAdminRole(cred.user);
+        if (!isAdminUser) {
+          await auth.signOut();
+          await auth.signInAnonymously().catch(()=>{});
+          errorEl.innerHTML = 'Tài khoản này chưa được cấp quyền Admin trên Firestore.';
+          errorEl.style.display = 'block';
+          return;
+        }
         closeAdminLogin();
-        alert("Đăng nhập thành công!");
+        alert('Đăng nhập thành công!');
       } catch (e) {
-        document.getElementById('admin-login-error').textContent = e.message;
-        document.getElementById('admin-login-error').style.display = 'block';
+        errorEl.innerHTML = 'Lỗi đăng nhập: ' + e.message;
+        errorEl.style.display = 'block';
       }
     }
 
@@ -556,142 +724,349 @@
       await auth.signInAnonymously();
     }
 
-    // --- QUẢN LÝ LỘ TRÌNH & MAP ---
+    // ==========================================
+    // MAP & ROUTING LOGIC
+    // ==========================================
     function initMap() {
-      if (!map) {
-        map = L.map('map').setView([18.5, 106.0], 6);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-      }
+      try {
+        if (!map) {
+          map = L.map('map').setView([18.5, 106.0], 6);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+        }
+      } catch (err) { console.error(err); }
+    }
+
+    function clearLegBadges() {
+      legBadgeMarkers.forEach(m => map.removeLayer(m));
+      legBadgeMarkers = [];
+      if (fallbackPolyline) { map.removeLayer(fallbackPolyline); fallbackPolyline = null; }
     }
 
     function renderRoadRouting(points) {
       if (routingControl) map.removeControl(routingControl);
       let waypoints = points.map(p => L.latLng(p.lat, p.lng));
+
       routingControl = L.Routing.control({
         waypoints: waypoints,
         router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1', profile: 'car' }),
-        createMarker: (i, wp) => L.marker(wp.latLng).bindPopup(`<b>${points[i]?.name}</b>`),
-        addWaypoints: false
+        lineOptions: { styles: [{ color: '#007bff', weight: 4, opacity: 0.8 }] },
+        createMarker: function(i, wp) {
+          let p = points[i] || { name: `Điểm ${i+1}` };
+          let color = i === 0 ? '#28a745' : (i === points.length - 1 ? '#6f42c1' : '#007bff');
+          let customIcon = L.divIcon({
+            className: 'custom-div-icon',
+            html: `<div style="background-color:${color};color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);">${i + 1}</div>`,
+            iconSize: [32, 32], iconAnchor: [16, 16]
+          });
+          return L.marker(wp.latLng, { icon: customIcon }).bindPopup(`<b>${v6Esc(p.name)}</b><br>${v6Esc(p.desc || '')}`);
+        },
+        addWaypoints: false, routeWhileDragging: false
       }).addTo(map);
+
+      routingControl.on('routesfound', function(e) {
+        renderPointsTable(points, e.routes[0]);
+      });
     }
 
     function renderPointsTable(points, route) {
-      const tbody = document.getElementById('route-points-list');
+      clearLegBadges();
+      let tbody = document.getElementById('route-points-list');
       tbody.innerHTML = '';
+      let totalKmSum = 0, totalMinSum = 0;
+
       points.forEach((p, index) => {
+        let legInfo = "-";
+        if (index < points.length - 1) {
+          let legKm = 0, legMin = 0;
+          let midLat = (p.lat + points[index+1].lat) / 2;
+          let midLng = (p.lng + points[index+1].lng) / 2;
+
+          if (route && route.legs && route.legs[index]) {
+            let leg = route.legs[index];
+            legKm = leg.summary.totalDistance / 1000;
+            legMin = Math.round(leg.summary.totalTime / 60);
+            if (leg.coordinates?.length > 0) {
+              let mc = leg.coordinates[Math.floor(leg.coordinates.length / 2)];
+              midLat = mc.lat; midLng = mc.lng;
+            }
+          } else if (points.length === defaultPoints.length && presetLegs[index]) {
+            legKm = presetLegs[index].km; legMin = presetLegs[index].timeMin;
+          } else {
+            legKm = 100; legMin = 120;
+          }
+
+          totalKmSum += legKm; totalMinSum += legMin;
+          legInfo = `<span style="color:#2b6cb0; font-weight:600;">➔ ${legKm.toFixed(1)} km</span>`;
+
+          let badge = L.marker([midLat, midLng], {
+            icon: L.divIcon({
+              className: 'leg-badge-icon',
+              html: `<div style="background:#1a365d;color:white;padding:2px 6px;border-radius:10px;font-size:10px;font-weight:bold;white-space:nowrap;border:1px solid white;">➔ ${legKm.toFixed(1)} km</div>`,
+              iconAnchor: [25, 8]
+            })
+          }).addTo(map);
+          legBadgeMarkers.push(badge);
+        }
+
         tbody.innerHTML += `
           <tr>
             <td><b>${index + 1}</b></td>
-            <td><b>${p.name}</b></td>
-            <td class="col-coord"><code>${p.lat}, ${p.lng}</code></td>
-            <td>${p.desc || '-'}</td>
-            <td>Chặng tiếp theo</td>
-            <td class="admin-col"><button class="btn btn-danger" onclick="deletePoint('${p.id}')">Xóa</button></td>
-          </tr>`;
+            <td><b>${v6Esc(p.name)}</b></td>
+            <td><code>${v6Esc(p.lat)}, ${v6Esc(p.lng)}</code></td>
+            <td>${v6Esc(p.desc || '-')}</td>
+            <td>${legInfo}</td>
+            <td class="admin-only"><button class="btn btn-danger" onclick="deletePoint(${index})">Xóa</button></td>
+          </tr>
+        `;
       });
+
+      document.getElementById('total-distance').innerText = `${totalKmSum.toFixed(1)} km`;
+      document.getElementById('v6-total-km').innerText = `${totalKmSum.toFixed(1)} km`;
+      document.getElementById('total-time').innerText = `${Math.floor(totalMinSum/60)} giờ ${totalMinSum%60} phút`;
     }
 
     function addCustomPoint() {
-      const name = document.getElementById('point-name').value;
-      const desc = document.getElementById('point-desc').value;
-      const lat = parseFloat(document.getElementById('point-lat').value);
-      const lng = parseFloat(document.getElementById('point-lng').value);
-      if (!name || isNaN(lat)) return alert("Nhập đủ thông tin điểm!");
+      if (!v6IsAdmin()) return alert('Chỉ QTV mới được thêm điểm.');
+      let name = document.getElementById('point-name').value;
+      let desc = document.getElementById('point-desc').value;
+      let lat = parseFloat(document.getElementById('point-lat').value);
+      let lng = parseFloat(document.getElementById('point-lng').value);
+      if (!name || isNaN(lat)) return alert("Vui lòng nhập tên và tọa độ hợp lệ!");
 
-      db.collection("trips").doc(currentTripId).collection("points").add({ name, desc, lat, lng }).then(() => {
-        document.getElementById('point-name').value = '';
-        document.getElementById('point-desc').value = '';
-        document.getElementById('point-lat').value = '';
-        document.getElementById('point-lng').value = '';
+      db.collection("trips").doc(currentTripId).collection("data").doc("points").get().then(doc => {
+        let pts = doc.exists && doc.data().list ? doc.data().list : defaultPoints;
+        pts.splice(pts.length - 1, 0, { name, lat, lng, desc });
+        doc.ref.set({ list: pts }).then(() => {
+          document.getElementById('point-name').value = '';
+          document.getElementById('point-lat').value = '';
+          document.getElementById('point-lng').value = '';
+          document.getElementById('point-desc').value = '';
+        });
       });
     }
 
-    function deletePoint(id) {
-      db.collection("trips").doc(currentTripId).collection("points").doc(id).delete();
+    function deletePoint(index) {
+      if (!v6IsAdmin()) return;
+      db.collection("trips").doc(currentTripId).collection("data").doc("points").get().then(doc => {
+        let pts = doc.exists && doc.data().list ? doc.data().list : defaultPoints;
+        if (pts.length <= 2) return alert("Cần ít nhất 2 điểm!");
+        pts.splice(index, 1);
+        doc.ref.set({ list: pts });
+      });
     }
 
-    // --- CÁC HÀM TIỆN ÍCH KHÁC (Thành viên, Chi phí, Chat) ---
+    function resetDefaultPoints() {
+      if (!v6IsAdmin()) return;
+      if (confirm("Khôi phục lộ trình mặc định?")) {
+        db.collection("trips").doc(currentTripId).collection("data").doc("points").set({ list: defaultPoints });
+      }
+    }
+
+    // ==========================================
+    // MEMBERS & EXPENSES & CHAT
+    // ==========================================
     function renderMembers(members) {
-      const tbody = document.getElementById('member-list');
+      let tbody = document.getElementById('member-list');
       tbody.innerHTML = '';
-      document.getElementById('v6-member-count').textContent = members.length;
-      members.forEach(m => {
-        tbody.innerHTML += `<tr><td><b>${m.name}</b></td><td>${m.phone}</td><td>${m.role}</td><td class="admin-col"><button class="btn btn-danger" onclick="deleteMember('${m.id}')">Xóa</button></td></tr>`;
+      members.forEach((m, i) => {
+        tbody.innerHTML += `
+          <tr>
+            <td><b>${v6Esc(m.name)}</b></td>
+            <td>${v6Esc(m.phone)}</td>
+            <td>${v6Esc(m.role)}</td>
+            <td class="admin-only"><button class="btn btn-danger" onclick="deleteMember(${i})">Xóa</button></td>
+          </tr>
+        `;
       });
+      document.getElementById('v6-member-count').textContent = members.length;
+      v6RefreshPayerLists(members);
     }
 
     function addMember() {
-      const name = document.getElementById('member-name').value;
-      const phone = document.getElementById('member-phone').value;
-      const role = document.getElementById('member-role').value;
-      if (!name) return;
-      db.collection("trips").doc(currentTripId).collection("members").add({ name, phone, role }).then(() => {
-        document.getElementById('member-name').value = '';
-        document.getElementById('member-phone').value = '';
+      if (!v6IsAdmin()) return;
+      let name = document.getElementById('member-name').value;
+      let phone = document.getElementById('member-phone').value;
+      let role = document.getElementById('member-role').value || "Thành viên";
+      if (!name) return alert("Nhập tên thành viên!");
+
+      db.collection("trips").doc(currentTripId).collection("data").doc("members").get().then(doc => {
+        let mems = doc.exists && doc.data().list ? doc.data().list : [];
+        mems.push({ name, phone, role });
+        doc.ref.set({ list: mems }).then(() => {
+          document.getElementById('member-name').value = '';
+          document.getElementById('member-phone').value = '';
+          document.getElementById('member-role').value = '';
+        });
       });
     }
 
-    function deleteMember(id) { db.collection("trips").doc(currentTripId).collection("members").doc(id).delete(); }
-
-    function renderExpenses(expenses) {
-      const tbody = document.getElementById('v6-expense-list');
-      tbody.innerHTML = '';
-      let total = 0;
-      expenses.forEach(x => {
-        total += Number(x.amount || 0);
-        tbody.innerHTML += `<tr><td>${x.date}</td><td><b>${x.category}</b></td><td>${x.description}</td><td>${x.payer}</td><td><b>${Number(x.amount).toLocaleString()} đ</b></td><td class="admin-col"><button class="btn btn-danger" onclick="deleteExpense('${x.id}')">Xóa</button></td></tr>`;
+    function deleteMember(index) {
+      if (!v6IsAdmin()) return;
+      db.collection("trips").doc(currentTripId).collection("data").doc("members").get().then(doc => {
+        let mems = doc.exists && doc.data().list ? doc.data().list : [];
+        mems.splice(index, 1);
+        doc.ref.set({ list: mems });
       });
-      document.getElementById('v6-cost-total').textContent = total.toLocaleString() + ' đ';
-      document.getElementById('v6-cost-total2').textContent = total.toLocaleString() + ' đ';
-      document.getElementById('v6-cost-count').textContent = expenses.length;
+    }
+
+    function v6RefreshPayerLists(members) {
+      const html = members.map(m => `<option value="${v6Esc(m.name)}"></option>`).join('');
+      ['v6-member-payer-list', 'v6-member-payer-edit-list'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = html;
+      });
+    }
+
+    function v6RenderExpenses() {
+      const tbody = document.getElementById('v6-expense-list');
+      if (!tbody) return;
+
+      const total = v6Expenses.reduce((s, x) => s + Number(x.amount || 0), 0);
+      document.getElementById('v6-cost-total').textContent = v6Money(total);
+      document.getElementById('v6-cost-total2').textContent = v6Money(total);
+      document.getElementById('v6-cost-count').textContent = v6Expenses.length;
+      document.getElementById('v6-cost-avg').textContent = v6Money(v6Expenses.length ? total / v6Expenses.length : 0);
+      document.getElementById('v6-cost-dayavg').textContent = v6Money(total / 6);
+
+      const byCat = {};
+      V6_CATS.forEach(c => byCat[c] = 0);
+      v6Expenses.forEach(x => { if (byCat[x.category] !== undefined) byCat[x.category] += Number(x.amount || 0); });
+
+      const max = Math.max(...Object.values(byCat), 1);
+      document.getElementById('v6-cost-cats').innerHTML = V6_CATS.map(c => `
+        <div class="v6-cat-row">
+          <div style="min-width:110px"><b>${v6Esc(c)}</b><div class="v6-bar"><i style="width:${byCat[c]/max*100}%"></i></div></div>
+          <b>${v6Money(byCat[c])}</b>
+        </div>`).join('');
+
+      if (!v6Expenses.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#718096; padding:20px;">Chưa có khoản chi nào.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = v6Expenses.map(x => `
+        <tr>
+          <td>${v6Esc(x.date || '')}</td>
+          <td><b>${v6Esc(x.category || '')}</b></td>
+          <td>${v6Esc(x.description || '')}</td>
+          <td>${v6Esc(x.payer || '')}</td>
+          <td><b>${v6Money(x.amount)}</b></td>
+          <td class="admin-only">
+            <button class="btn btn-outline" style="padding:2px 6px;" onclick="v6OpenEdit('${x.id}')">Sửa</button>
+            <button class="btn btn-danger" style="padding:2px 6px;" onclick="v6DeleteExpense('${x.id}')">Xóa</button>
+          </td>
+        </tr>`).join('');
     }
 
     function v6SaveExpense() {
+      if (!v6IsAdmin()) return alert("Cần quyền QTV.");
       const date = document.getElementById('v6-exp-date').value;
       const category = document.getElementById('v6-exp-cat').value;
-      const description = document.getElementById('v6-exp-desc').value;
-      const amount = Number(document.getElementById('v6-exp-amount').value.replace(/\D/g, ''));
-      const payer = document.getElementById('v6-exp-payer').value;
-      if (!date || !amount) return alert("Nhập đủ thông tin chi phí!");
+      const description = document.getElementById('v6-exp-desc').value.trim();
+      const amount = v6ParseMoney(document.getElementById('v6-exp-amount').value);
+      const payer = document.getElementById('v6-exp-payer').value.trim();
 
-      db.collection("trips").doc(currentTripId).collection("expenses").add({ date, category, description, amount, payer }).then(() => {
+      if (!date || !description || !amount || !payer) return alert("Nhập đủ thông tin khoản chi!");
+
+      db.collection("trips").doc(currentTripId).collection("expenses").add({
+        date, category, description, amount, payer,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
         document.getElementById('v6-exp-desc').value = '';
         document.getElementById('v6-exp-amount').value = '';
       });
     }
 
-    function deleteExpense(id) { db.collection("trips").doc(currentTripId).collection("expenses").doc(id).delete(); }
+    function v6OpenEdit(id) {
+      if (!v6IsAdmin()) return;
+      const x = v6Expenses.find(a => a.id === id);
+      if (!x) return;
+      v6EditingId = id;
+      document.getElementById('v6-edit-date').value = x.date || '';
+      document.getElementById('v6-edit-cat').value = x.category || V6_CATS[0];
+      document.getElementById('v6-edit-desc').value = x.description || '';
+      document.getElementById('v6-edit-amount').value = x.amount || '';
+      document.getElementById('v6-edit-payer').value = x.payer || '';
+      document.getElementById('v6-expense-modal').classList.add('show');
+    }
 
+    function v6CloseModal() { document.getElementById('v6-expense-modal').classList.remove('show'); v6EditingId = null; }
+
+    function v6UpdateExpense() {
+      if (!v6IsAdmin() || !v6EditingId) return;
+      db.collection("trips").doc(currentTripId).collection("expenses").doc(v6EditingId).update({
+        date: document.getElementById('v6-edit-date').value,
+        category: document.getElementById('v6-edit-cat').value,
+        description: document.getElementById('v6-edit-desc').value.trim(),
+        amount: v6ParseMoney(document.getElementById('v6-edit-amount').value),
+        payer: document.getElementById('v6-edit-payer').value.trim()
+      }).then(v6CloseModal);
+    }
+
+    function v6DeleteExpense(id) {
+      if (!v6IsAdmin()) return;
+      if (confirm("Xóa khoản chi này?")) {
+        db.collection("trips").doc(currentTripId).collection("expenses").doc(id).delete();
+      }
+    }
+
+    // Chat
     function renderChatMessages(messages) {
       const box = document.getElementById('chat-messages');
+      const myName = (localStorage.getItem('chat_my_name') || '').trim().toUpperCase();
       box.innerHTML = '';
-      messages.forEach(m => {
-        box.innerHTML += `<div class="chat-msg"><div class="msg-info"><b>${m.user}</b> • ${m.time}</div><div class="bubble">${m.text}</div></div>`;
+
+      messages.forEach(msg => {
+        let userUp = (msg.user || '').trim().toUpperCase();
+        let type = userUp === 'HỆ THỐNG' ? 'system' : (myName && userUp === myName ? 'mine' : 'other');
+        box.innerHTML += `
+          <div class="chat-msg ${type}">
+            <div style="font-size:11px; color:#718096; margin-bottom:2px;"><b>${v6Esc(msg.user)}</b> • ${v6Esc(msg.dateTime || msg.time || '')}</div>
+            <div>${v6Esc(msg.text)}</div>
+          </div>
+        `;
       });
       box.scrollTop = box.scrollHeight;
     }
 
     function sendChatMessage() {
-      const user = document.getElementById('chat-user').value || "THÀNH VIÊN";
-      const text = document.getElementById('chat-text').value;
-      if (!text) return;
-      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      let user = document.getElementById('chat-user').value.trim().toUpperCase();
+      let text = document.getElementById('chat-text').value.trim();
+      if (!user || !text) return alert("Vui lòng nhập tên và nội dung chat!");
 
-      db.collection("trips").doc(currentTripId).collection("chat").add({ user, text, time }).then(() => {
-        document.getElementById('chat-text').value = '';
+      localStorage.setItem('chat_my_name', user);
+      const now = new Date();
+      const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      const dateStr = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth()+1).toString().padStart(2, '0')}`;
+      const dateTimeStr = `${dateStr} ${timeStr}`;
+
+      const chatRef = db.collection("trips").doc(currentTripId).collection("data").doc("chat");
+      chatRef.get().then(doc => {
+        let msgs = doc.exists && doc.data().list ? doc.data().list : [];
+        msgs.push({ user, text, time: timeStr, dateTime: dateTimeStr });
+        chatRef.set({ list: msgs }).then(() => {
+          document.getElementById('chat-text').value = '';
+        });
       });
     }
 
+    // Utilities
     function v6Show(name, btn) {
       document.querySelectorAll('.v6-section').forEach(x => x.classList.remove('active'));
       document.getElementById('v6-' + name).classList.add('active');
       document.querySelectorAll('.v6-nav button').forEach(x => x.classList.remove('active'));
       btn.classList.add('active');
+      if (name === 'route') { map.invalidateSize(); }
     }
 
+    function v6Money(n) { return new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(Number(n) || 0) + ' đ'; }
+    function v6ParseMoney(v) { if (typeof v === 'number') return Math.round(v); return Number(String(v || '').replace(/\D/g, '')) || 0; }
     function v6FormatMoneyInput(input) {
-      let val = input.value.replace(/\D/g, '');
-      input.value = val ? Number(val).toLocaleString('vi-VN') : '';
+      const n = v6ParseMoney(input.value);
+      input.value = n ? new Intl.NumberFormat('vi-VN').format(n) : '';
+    }
+    function v6Esc(v) {
+      return String(v ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[c]));
     }
   </script>
 </body>
