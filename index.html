@@ -16,6 +16,7 @@
   <!-- Firebase App & Firestore CDN (Compat Version) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
@@ -180,7 +181,7 @@
       </div>
       <div class="admin-bar-btns">
         <button id="btn-login-admin" class="btn btn-warning" onclick="loginAdmin()">🔐 Đăng Nhập Quản Trị</button>
-        <button id="btn-change-pwd" class="btn btn-dark admin-only admin-flex" onclick="changeAdminPassword()">🔑 Đổi Mật Khẩu</button>
+        <span id="admin-email-display" class="admin-only admin-flex" style="align-items:center;font-size:12px;color:#4a5568"></span>
         <button id="btn-logout-admin" class="btn btn-danger admin-only admin-flex" onclick="logoutAdmin()">Thoát Quản Trị</button>
       </div>
     </div>
@@ -510,6 +511,12 @@
     // Khởi tạo Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    // Tài khoản quản trị được xác định bằng document: admin_users/{UID}
+    // Không lưu mật khẩu trong code/localStorage/sessionStorage.
+    let currentUser = null;
+    let isAdminUser = false;
 
     let map = null;
     let routingControl = null;
@@ -536,7 +543,6 @@
     ];
 
     document.addEventListener('DOMContentLoaded', function() {
-      checkAdminStatus();
       initMap();
       listenFirebaseData();
 
@@ -552,55 +558,68 @@
       });
     });
 
-    function getAdminPassword() {
-      return localStorage.getItem('admin_pwd') || 'admin123';
+    async function loadAdminRole(user) {
+      currentUser = user || null;
+      isAdminUser = false;
+      if (user) {
+        try {
+          const snap = await db.collection("admin_users").doc(user.uid).get();
+          isAdminUser = snap.exists && snap.data().role === "admin";
+        } catch (e) {
+          console.error("Không kiểm tra được quyền quản trị:", e);
+          isAdminUser = false;
+        }
+      }
+      checkAdminStatus();
+    }
+
+    function v6IsAdmin(){
+      return !!(currentUser && isAdminUser);
     }
 
     function checkAdminStatus() {
-      const isAdmin = sessionStorage.getItem('is_admin') === 'true';
+      const isAdmin = v6IsAdmin();
       const roleDisplay = document.getElementById('role-display');
       const btnLogin = document.getElementById('btn-login-admin');
-
+      const emailDisplay = document.getElementById('admin-email-display');
       if (isAdmin) {
         document.body.classList.add('is-admin');
         roleDisplay.className = 'badge-role role-admin';
         roleDisplay.innerText = 'Quản Trị Viên';
         btnLogin.style.display = 'none';
+        if(emailDisplay){ emailDisplay.style.display='inline-flex'; emailDisplay.textContent = currentUser.email || ''; }
       } else {
         document.body.classList.remove('is-admin');
         roleDisplay.className = 'badge-role role-user';
-        roleDisplay.innerText = 'Thành Viên (Chỉ Xem)';
+        roleDisplay.innerText = currentUser ? 'Đã đăng nhập · Chỉ xem' : 'Thành Viên (Chỉ Xem)';
         btnLogin.style.display = 'inline-block';
+        if(emailDisplay){ emailDisplay.style.display='none'; emailDisplay.textContent=''; }
       }
+      if(typeof v6SyncRoleUI === 'function') v6SyncRoleUI();
     }
 
-    function loginAdmin() {
-      const pwd = prompt("Nhập mật khẩu quản trị:");
-      if (pwd === getAdminPassword()) {
-        sessionStorage.setItem('is_admin', 'true');
-        checkAdminStatus();
-        alert("Đăng nhập quản trị thành công!");
-      } else if (pwd !== null) {
-        alert("Mật khẩu không chính xác!");
-      }
-    }
-
-    function logoutAdmin() {
-      sessionStorage.removeItem('is_admin');
-      checkAdminStatus();
-    }
-
-    function changeAdminPassword() {
-      const oldPwd = prompt("Nhập mật khẩu cũ:");
-      if (oldPwd === getAdminPassword()) {
-        const newPwd = prompt("Nhập mật khẩu mới:");
-        if (newPwd && newPwd.trim() !== '') {
-          localStorage.setItem('admin_pwd', newPwd.trim());
-          alert("Cập nhật mật khẩu thành công!");
+    async function loginAdmin() {
+      const email = prompt("Email quản trị:");
+      if (email === null) return;
+      const password = prompt("Mật khẩu:");
+      if (password === null) return;
+      try {
+        const cred = await auth.signInWithEmailAndPassword(email.trim(), password);
+        await loadAdminRole(cred.user);
+        if (!isAdminUser) {
+          await auth.signOut();
+          alert("Tài khoản này chưa được cấp quyền Quản trị.");
+          return;
         }
-      } else if (oldPwd !== null) {
-        alert("Mật khẩu cũ không khớp!");
+        alert("Đăng nhập quản trị thành công!");
+      } catch (e) {
+        console.error(e);
+        alert("Đăng nhập thất bại. Kiểm tra email/mật khẩu hoặc cấu hình Firebase Authentication.");
       }
+    }
+
+    async function logoutAdmin() {
+      try { await auth.signOut(); } catch(e) { console.error(e); }
     }
 
     // ==========================================
@@ -611,7 +630,7 @@
         let points = defaultPoints;
         if (doc.exists && doc.data().list) {
           points = doc.data().list;
-        } else {
+        } else if (v6IsAdmin()) {
           db.collection("trip_data").doc("points").set({ list: defaultPoints });
         }
         renderPointsTable(points, null);
@@ -622,7 +641,7 @@
         let members = [{ name: "Nguyễn Tiến Duẩn", phone: "098x xxx xxx", role: "Trưởng đoàn / Lái chính" }];
         if (doc.exists && doc.data().list) {
           members = doc.data().list;
-        } else {
+        } else if (v6IsAdmin()) {
           db.collection("trip_data").doc("members").set({ list: members });
         }
         renderMembers(members);
@@ -632,13 +651,15 @@
         let messages = [{ user: "HỆ THỐNG", text: "Chào mừng cả đoàn đến với kênh trao đổi chuyến đi 2026!", time: "10:00" }];
         if (doc.exists && doc.data().list) {
           messages = doc.data().list;
-        } else {
+        } else if (v6IsAdmin()) {
           db.collection("trip_data").doc("chat").set({ list: messages });
         }
         renderChatMessages(messages);
       });
     }
 
+    // Tin nhắn mới lưu cả ngày và giờ (DD/MM/YYYY HH:mm).
+    // Tin nhắn cũ chưa có trường date sẽ hiển thị “Chưa có ngày” thay vì tự đoán ngày.
     function renderChatMessages(messages) {
       const chatBox = document.getElementById('chat-messages');
       const myName = (localStorage.getItem('chat_my_name') || '').trim().toUpperCase();
@@ -656,7 +677,7 @@
 
         chatBox.innerHTML += `
           <div class="chat-msg ${msgType}">
-            <div class="msg-info"><b>${msg.user}</b> • ${msg.time}</div>
+            <div class="msg-info"><b>${msg.user}</b> • ${msg.date || 'Chưa có ngày'}${msg.time ? ' ' + msg.time : ''}</div>
             <div class="bubble">${msg.text}</div>
           </div>
         `;
@@ -674,11 +695,12 @@
       localStorage.setItem('chat_my_name', userInput);
 
       const now = new Date();
+      const dateStr = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
       const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
       db.collection("trip_data").doc("chat").get().then((doc) => {
         let messages = doc.exists && doc.data().list ? doc.data().list : [];
-        messages.push({ user: userInput, text: textInput, time: timeStr });
+        messages.push({ user: userInput, text: textInput, date: dateStr, time: timeStr });
         db.collection("trip_data").doc("chat").set({ list: messages }).then(() => {
           document.getElementById('chat-text').value = '';
         });
@@ -867,12 +889,15 @@
 
       let sumH = Math.floor(totalMinSum / 60);
       let sumM = totalMinSum % 60;
-      document.getElementById('total-distance').innerText = `${totalKmSum.toFixed(1)} km`;
+      const kmText = `${new Intl.NumberFormat('vi-VN', {maximumFractionDigits: 1}).format(totalKmSum)} km`;
+      document.getElementById('total-distance').innerText = kmText;
       document.getElementById('total-time').innerText = `${sumH} giờ ${sumM} phút`;
+      const v6Km = document.getElementById('v6-total-km');
+      if(v6Km) v6Km.textContent = kmText;
     }
 
     function addCustomPoint() {
-      if (sessionStorage.getItem('is_admin') !== 'true') return alert('Chức năng này chỉ dành cho Quản trị viên.');
+      if (!v6RequireAdmin()) return;
       let name = document.getElementById('point-name').value;
       let desc = document.getElementById('point-desc').value;
       let lat = parseFloat(document.getElementById('point-lat').value);
@@ -896,7 +921,7 @@
     }
 
     function deletePoint(index) {
-      if (sessionStorage.getItem('is_admin') !== 'true') return alert('Chức năng này chỉ dành cho Quản trị viên.');
+      if (!v6RequireAdmin()) return;
       db.collection("trip_data").doc("points").get().then((doc) => {
         let points = doc.exists && doc.data().list ? doc.data().list : defaultPoints;
         if (points.length <= 2) return alert("Lộ trình cần ít nhất 2 điểm!");
@@ -906,7 +931,7 @@
     }
 
     function resetDefaultPoints() {
-      if (sessionStorage.getItem('is_admin') !== 'true') return alert('Chức năng này chỉ dành cho Quản trị viên.');
+      if (!v6RequireAdmin()) return;
       if (confirm("Bạn có chắc chắn muốn khôi phục lại 7 điểm chuẩn ban đầu?")) {
         db.collection("trip_data").doc("points").set({ list: defaultPoints });
       }
@@ -929,7 +954,7 @@
     }
 
     function addMember() {
-      if (sessionStorage.getItem('is_admin') !== 'true') return alert('Chức năng này chỉ dành cho Quản trị viên.');
+      if (!v6RequireAdmin()) return;
       let name = document.getElementById('member-name').value;
       let phone = document.getElementById('member-phone').value;
       let role = document.getElementById('member-role').value || "Thành viên";
@@ -948,7 +973,7 @@
     }
 
     function deleteMember(index) {
-      if (sessionStorage.getItem('is_admin') !== 'true') return alert('Chức năng này chỉ dành cho Quản trị viên.');
+      if (!v6RequireAdmin()) return;
       db.collection("trip_data").doc("members").get().then((doc) => {
         let members = doc.exists && doc.data().list ? doc.data().list : [];
         members.splice(index, 1);
@@ -965,10 +990,6 @@
     let v6EditingId = null;
 
     const V6_CATS = ["Xăng","Lưu trú","Ăn uống","Vé tham quan","Quà lưu niệm","Vé đường bộ","Gửi xe"];
-
-    function v6IsAdmin(){
-      return sessionStorage.getItem('is_admin') === 'true';
-    }
 
     function v6RequireAdmin(){
       if(!v6IsAdmin()){
@@ -1202,6 +1223,10 @@
       target.innerHTML='<div class="v6-admin-note">Bản đồ chi tiết vẫn nằm ở khu vực Lộ trình gốc phía trên. Danh sách bên dưới là bản xem nhanh.</div>'+source.closest('.table-container').outerHTML;
       const copy=target.querySelector('tbody');
       if(copy) copy.id='v6-route-copy-tbody';
+      const total = document.getElementById('total-distance')?.textContent || '0 km';
+      const time = document.getElementById('total-time')?.textContent || '';
+      const summary = document.getElementById('v6-route-summary');
+      if(summary) summary.textContent = `Tổng quãng đường: ${total}${time ? ' · Thời gian dự kiến: ' + time : ''}`;
     }
 
     function v6GetMemberNames(){
@@ -1243,12 +1268,9 @@
       v6RefreshPayerLists();
     }
 
-    // Patch the existing role checker so V6 updates instantly.
-    const v6OriginalCheckAdminStatus = checkAdminStatus;
-    checkAdminStatus = function(){
-      v6OriginalCheckAdminStatus();
-      v6SyncRoleUI();
-    };
+    auth.onAuthStateChanged(function(user){
+      loadAdminRole(user);
+    });
 
     document.addEventListener('DOMContentLoaded',function(){
       v6ListenExpenses();
