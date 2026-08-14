@@ -154,6 +154,22 @@
       <h1 id="main-trip-title">HÀNH TRÌNH DU LỊCH ĐA CHUYẾN ĐI</h1>
       <p id="main-trip-subtitle">Chọn hoặc tạo chuyến đi mới để bắt đầu lên kế hoạch</p>
     </div>
+    <div class="header">
+      <h1 id="main-trip-title">HÀNH TRÌNH DU LỊCH ĐA CHUYẾN ĐI</h1>
+      <p id="main-trip-subtitle">Chọn hoặc tạo chuyến đi mới để bắt đầu lên kế hoạch</p>
+    </div>
+
+    <!-- 👇 Dán đoạn code này vào đây -->
+    <div class="trip-selector-bar">
+      <div class="trip-selector-row">
+        <label style="font-weight:700; font-size:13px; color:#2b6cb0;">Chuyến đi:</label>
+        <select id="trip-select" onchange="switchActiveTrip(this.value)">
+          <option value="">-- Đang tải danh sách chuyến đi... --</option>
+        </select>
+        <button class="btn btn-success admin-only admin-flex" style="width:auto; padding:8px 12px;" onclick="openNewTripModal()">➕ Tạo Chuyến Đi Mới</button>
+      </div>
+    </div>
+    <!-- 👆 Hết đoạn dán -->
 
     <!-- Thanh Chọn / Quản Lý Chuyến Đi (Động) -->
 <div class="trip-selector-bar">
