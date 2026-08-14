@@ -527,13 +527,13 @@
     // CẤU HÌNH FIREBASE (Dự án: AppDuLich)
     // ==========================================
     const firebaseConfig = {
-      apiKey: "AIzaSyCVuCRzrkhCGqQCZuXYcnHovAu0dgy0Fao",
+      apiKey: "AIzaSyC--k8xUbMKr22WA_MKtMHrJytbZOQ8-uc",
       authDomain: "appdulich-d2203.firebaseapp.com",
       projectId: "appdulich-d2203",
       storageBucket: "appdulich-d2203.firebasestorage.app",
-      messagingSenderId: "618555116660",
-      appId: "1:618555116660:web:881d55194389af106a5521",
-      measurementId: "G-6PJ7PGX2GZ"
+      messagingSenderId: "709157497489",
+      appId: "1:709157497489:web:decfd9bb170a5eb931ed30",
+      measurementId: "G-N7PRCXJG8E"
     };
 
     // Khởi tạo Firebase
@@ -587,8 +587,6 @@
       });
     });
 
-    // Kiểm tra quyền Admin nhưng KHÔNG đăng xuất người dùng nếu Firestore
-    // không cho đọc admin_users. Authentication và Authorization là 2 bước khác nhau.
     async function loadAdminRole(user) {
       currentUser = user || null;
       isAdminUser = false;
@@ -596,17 +594,13 @@
       if (user && !user.isAnonymous) {
         try {
           const snap = await db.collection('admin_users').doc(user.uid).get();
-          isAdminUser = snap.exists && String(snap.data().role || '').toLowerCase() === 'admin';
-          if (!isAdminUser) {
-            console.warn('[ADMIN] Tài khoản đã xác thực nhưng chưa có role=admin:', user.uid);
-          }
+          isAdminUser = snap.exists && snap.data().role === 'admin';
         } catch (e) {
-          // Rất quan trọng: lỗi đọc quyền KHÔNG được coi là lỗi đăng nhập.
-          console.error('[ADMIN] Không đọc được admin_users/' + user.uid, e);
+          console.error('Không kiểm tra được quyền quản trị:', e);
+          isAdminUser = false;
         }
       }
       checkAdminStatus();
-      return isAdminUser;
     }
 
     function v6IsAdmin(){
@@ -690,18 +684,16 @@
         console.log('[ADMIN LOGIN] Authentication OK. UID:', user.uid);
         console.log('[ADMIN LOGIN] Is anonymous:', user.isAnonymous);
 
-        const hasAdminRole = await loadAdminRole(user);
+        await loadAdminRole(user);
 
-        if (!hasAdminRole) {
-          // KHÔNG signOut ở đây. Nếu Authentication thành công thì giữ phiên
-          // đăng nhập để tránh vòng lặp Email/Password -> signOut -> Anonymous.
+        if (!isAdminUser) {
+          console.error('[ADMIN LOGIN] Authentication thành công nhưng UID chưa có role=admin:', user.uid);
+          await auth.signOut();
+          await auth.signInAnonymously().catch(()=>{});
           if (errorEl) {
-            errorEl.innerHTML = '⚠️ <b>Firebase đã đăng nhập thành công</b>, nhưng tài khoản này chưa được xác nhận quyền Admin.<br>' +
-              'UID: <code>' + user.uid + '</code><br>' +
-              'Kiểm tra Firestore: <code>admin_users/' + user.uid + '</code> có trường <code>role = "admin"</code> và Rules cho phép tài khoản này đọc document.';
+            errorEl.innerHTML = '⚠️ Đăng nhập Firebase thành công nhưng tài khoản này <b>chưa được cấp quyền Admin</b>.<br>UID: <code>' + user.uid + '</code><br>Kiểm tra Firestore: <code>admin_users/' + user.uid + '</code> có <code>role = admin</code>.';
             errorEl.style.display='block';
           }
-          if (passwordEl) passwordEl.value = '';
           return;
         }
 
@@ -769,24 +761,18 @@
       }
     }
 
-    // Firebase Auth: khách dùng Anonymous Auth để có thể dùng các chức năng công khai.
-    // Khi người dùng đăng nhập Email/Password, phiên Anonymous sẽ được Firebase thay thế.
-    // Chỉ có một listener để tránh 2 onAuthStateChanged chạy đua với nhau.
-    let authStateReady = false;
+    // Firebase Auth: khách dùng Anonymous Auth để có thể gửi chat theo Rules.
+    // Tài khoản Email/Password chỉ được cấp quyền quản trị khi có admin_users/{UID}.role = admin.
     auth.onAuthStateChanged(async (user) => {
       await loadAdminRole(user);
+    });
 
-      // Chỉ tạo Anonymous session khi Firebase thực sự không có user.
-      // Không signInAnonymously nếu đang có tài khoản Email/Password.
-      if (!user && !authStateReady) {
-        authStateReady = true;
-        try {
-          await auth.signInAnonymously();
-        } catch (err) {
-          console.error('Anonymous Authentication chưa được bật hoặc không khả dụng:', err);
-        }
-      } else {
-        authStateReady = true;
+    // Nếu chưa có phiên đăng nhập, tạo phiên ẩn danh để chat vẫn hoạt động.
+    auth.onAuthStateChanged((user) => {
+      if (!user) {
+        auth.signInAnonymously().catch(err => {
+          console.error('Anonymous Authentication chưa được bật:', err);
+        });
       }
     });
 
