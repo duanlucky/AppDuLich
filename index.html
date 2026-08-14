@@ -157,6 +157,15 @@
     .v6-modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
     .v6-close{border:0;background:#edf2f7;border-radius:50%;width:30px;height:30px;cursor:pointer}
     .v6-admin-badge{font-size:10px;background:#fff4e5;color:#9a6700;border:1px solid #f6d58d;border-radius:20px;padding:4px 7px;font-weight:700}
+    .admin-login-modal{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:center;justify-content:center;padding:15px;z-index:200}
+    .admin-login-modal.show{display:flex}
+    .admin-login-box{width:100%;max-width:420px;background:#fff;border-radius:14px;padding:18px;box-shadow:0 15px 40px rgba(0,0,0,.18)}
+    .admin-login-box h3{color:#1f4e79;margin-bottom:12px}
+    .admin-login-box label{display:block;font-size:12px;font-weight:700;color:#52606d;margin:10px 0 5px}
+    .admin-login-box input{width:100%;padding:11px;border:1px solid #cbd5e0;border-radius:8px;font-size:14px}
+    .admin-login-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+    .admin-login-error{display:none;color:#c53030;background:#fff5f5;border:1px solid #fed7d7;border-radius:8px;padding:8px;font-size:12px;margin-top:10px}
+
     @media(min-width:600px){
       .v6-nav{grid-template-columns:repeat(6,1fr)}
       .v6-pills{grid-template-columns:repeat(4,1fr)}
@@ -178,10 +187,11 @@
     <div class="admin-bar">
       <div>
         Quyền: <span id="role-display" class="badge-role role-user">Thành Viên (Chỉ Xem)</span>
+        <span id="admin-email-display" style="display:none;margin-left:6px;color:#52677d;font-size:12px"></span>
       </div>
       <div class="admin-bar-btns">
-        <button id="btn-login-admin" class="btn btn-warning" onclick="loginAdmin()">🔐 Đăng Nhập Quản Trị</button>
-        <span id="admin-email-display" class="admin-only admin-flex" style="align-items:center;font-size:12px;color:#4a5568"></span>
+        <button id="btn-login-admin" class="btn btn-warning" onclick="openAdminLogin()">🔐 Đăng Nhập Quản Trị</button>
+        <button id="btn-change-pwd" class="btn btn-dark admin-only admin-flex" onclick="changeAdminPassword()">🔑 Đổi Mật Khẩu</button>
         <button id="btn-logout-admin" class="btn btn-danger admin-only admin-flex" onclick="logoutAdmin()">Thoát Quản Trị</button>
       </div>
     </div>
@@ -472,6 +482,24 @@
       </div>
     </section>
 
+    <div id="admin-login-modal" class="admin-login-modal" onclick="if(event.target===this) closeAdminLogin()">
+      <div class="admin-login-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <h3>🔐 Đăng nhập Quản trị</h3>
+          <button type="button" class="v6-close" onclick="closeAdminLogin()">×</button>
+        </div>
+        <label for="admin-login-email">Email</label>
+        <input id="admin-login-email" type="email" autocomplete="username" placeholder="admin@example.com">
+        <label for="admin-login-password">Mật khẩu</label>
+        <input id="admin-login-password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu">
+        <div id="admin-login-error" class="admin-login-error"></div>
+        <div class="admin-login-actions">
+          <button type="button" class="btn btn-dark" onclick="closeAdminLogin()">Hủy</button>
+          <button type="button" class="btn btn-success" onclick="loginAdmin()">Đăng nhập</button>
+        </div>
+      </div>
+    </div>
+
     <div id="v6-expense-modal" class="v6-modal">
       <div class="v6-modal-box">
         <div class="v6-modal-head"><b>✏️ Sửa khoản chi</b><button class="v6-close" onclick="v6CloseModal()">×</button></div>
@@ -513,8 +541,8 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // Tài khoản quản trị được xác định bằng document: admin_users/{UID}
-    // Không lưu mật khẩu trong code/localStorage/sessionStorage.
+    // Quyền quản trị được xác định bởi Firebase Authentication +
+    // Firestore: admin_users/{UID}.role === "admin".
     let currentUser = null;
     let isAdminUser = false;
 
@@ -543,6 +571,7 @@
     ];
 
     document.addEventListener('DOMContentLoaded', function() {
+      checkAdminStatus();
       initMap();
       listenFirebaseData();
 
@@ -561,12 +590,13 @@
     async function loadAdminRole(user) {
       currentUser = user || null;
       isAdminUser = false;
-      if (user) {
+
+      if (user && !user.isAnonymous) {
         try {
-          const snap = await db.collection("admin_users").doc(user.uid).get();
-          isAdminUser = snap.exists && snap.data().role === "admin";
+          const snap = await db.collection('admin_users').doc(user.uid).get();
+          isAdminUser = snap.exists && snap.data().role === 'admin';
         } catch (e) {
-          console.error("Không kiểm tra được quyền quản trị:", e);
+          console.error('Không kiểm tra được quyền quản trị:', e);
           isAdminUser = false;
         }
       }
@@ -574,7 +604,7 @@
     }
 
     function v6IsAdmin(){
-      return !!(currentUser && isAdminUser);
+      return !!(currentUser && !currentUser.isAnonymous && isAdminUser);
     }
 
     function checkAdminStatus() {
@@ -582,45 +612,133 @@
       const roleDisplay = document.getElementById('role-display');
       const btnLogin = document.getElementById('btn-login-admin');
       const emailDisplay = document.getElementById('admin-email-display');
+      const btnLogout = document.getElementById('btn-logout-admin');
+
+      if (!roleDisplay || !btnLogin) return;
+
       if (isAdmin) {
         document.body.classList.add('is-admin');
         roleDisplay.className = 'badge-role role-admin';
         roleDisplay.innerText = 'Quản Trị Viên';
         btnLogin.style.display = 'none';
-        if(emailDisplay){ emailDisplay.style.display='inline-flex'; emailDisplay.textContent = currentUser.email || ''; }
+        if (emailDisplay) {
+          emailDisplay.style.display = 'inline-flex';
+          emailDisplay.textContent = currentUser.email || '';
+        }
+        if (btnLogout) btnLogout.style.display = 'inline-flex';
       } else {
         document.body.classList.remove('is-admin');
         roleDisplay.className = 'badge-role role-user';
-        roleDisplay.innerText = currentUser ? 'Đã đăng nhập · Chỉ xem' : 'Thành Viên (Chỉ Xem)';
+        roleDisplay.innerText = currentUser && !currentUser.isAnonymous
+          ? 'Đã đăng nhập · Chỉ xem'
+          : 'Thành Viên (Chỉ Xem)';
         btnLogin.style.display = 'inline-block';
-        if(emailDisplay){ emailDisplay.style.display='none'; emailDisplay.textContent=''; }
+        if (emailDisplay) {
+          emailDisplay.style.display = 'none';
+          emailDisplay.textContent = '';
+        }
+        if (btnLogout) btnLogout.style.display = 'none';
       }
-      if(typeof v6SyncRoleUI === 'function') v6SyncRoleUI();
+
+      if (typeof v6SyncRoleUI === 'function') v6SyncRoleUI();
+    }
+
+    function openAdminLogin() {
+      const modal = document.getElementById('admin-login-modal');
+      const email = document.getElementById('admin-login-email');
+      const password = document.getElementById('admin-login-password');
+      const error = document.getElementById('admin-login-error');
+      if (!modal) return;
+      modal.classList.add('show');
+      if (error) { error.style.display='none'; error.textContent=''; }
+      if (currentUser && currentUser.email && email) email.value = currentUser.email;
+      setTimeout(() => (email && !email.value ? email : password)?.focus(), 50);
+    }
+
+    function closeAdminLogin() {
+      const modal = document.getElementById('admin-login-modal');
+      if (modal) modal.classList.remove('show');
     }
 
     async function loginAdmin() {
-      const email = prompt("Email quản trị:");
-      if (email === null) return;
-      const password = prompt("Mật khẩu:");
-      if (password === null) return;
+      const emailEl = document.getElementById('admin-login-email');
+      const passwordEl = document.getElementById('admin-login-password');
+      const errorEl = document.getElementById('admin-login-error');
+      const email = (emailEl?.value || '').trim();
+      const password = passwordEl?.value || '';
+
+      if (!email || !password) {
+        if (errorEl) { errorEl.textContent='Vui lòng nhập đầy đủ email và mật khẩu.'; errorEl.style.display='block'; }
+        return;
+      }
+
       try {
-        const cred = await auth.signInWithEmailAndPassword(email.trim(), password);
-        await loadAdminRole(cred.user);
+        await auth.signInWithEmailAndPassword(email, password);
+        const user = auth.currentUser;
+        await loadAdminRole(user);
+
         if (!isAdminUser) {
           await auth.signOut();
-          alert("Tài khoản này chưa được cấp quyền Quản trị.");
+          await auth.signInAnonymously().catch(()=>{});
+          if (errorEl) { errorEl.textContent='Tài khoản này chưa được cấp quyền Quản trị.'; errorEl.style.display='block'; }
           return;
         }
-        alert("Đăng nhập quản trị thành công!");
+
+        if (passwordEl) passwordEl.value = '';
+        closeAdminLogin();
+        alert('Đăng nhập quản trị thành công!');
       } catch (e) {
         console.error(e);
-        alert("Đăng nhập thất bại. Kiểm tra email/mật khẩu hoặc cấu hình Firebase Authentication.");
+        if (errorEl) {
+          errorEl.textContent = 'Đăng nhập thất bại. Kiểm tra email/mật khẩu.';
+          errorEl.style.display = 'block';
+        }
       }
     }
 
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape') closeAdminLogin();
+      if(e.key === 'Enter' && document.getElementById('admin-login-modal')?.classList.contains('show')) {
+        const tag = document.activeElement?.tagName;
+        if(tag === 'INPUT') loginAdmin();
+      }
+    });
+
     async function logoutAdmin() {
-      try { await auth.signOut(); } catch(e) { console.error(e); }
+      try {
+        await auth.signOut();
+        await auth.signInAnonymously();
+      } catch (e) {
+        console.error(e);
+        alert('Không thể đăng xuất: ' + e.message);
+      }
     }
+
+    async function changeAdminPassword() {
+      if (!v6IsAdmin() || !currentUser.email) return;
+      try {
+        await auth.sendPasswordResetEmail(currentUser.email);
+        alert('Đã gửi email đặt lại mật khẩu tới ' + currentUser.email + '. Vui lòng kiểm tra hộp thư.');
+      } catch (e) {
+        console.error(e);
+        alert('Không thể gửi email đặt lại mật khẩu: ' + e.message);
+      }
+    }
+
+    // Firebase Auth: khách dùng Anonymous Auth để có thể gửi chat theo Rules.
+    // Tài khoản Email/Password chỉ được cấp quyền quản trị khi có admin_users/{UID}.role = admin.
+    auth.onAuthStateChanged(async (user) => {
+      await loadAdminRole(user);
+    });
+
+    // Nếu chưa có phiên đăng nhập, tạo phiên ẩn danh để chat vẫn hoạt động.
+    auth.onAuthStateChanged((user) => {
+      if (!user) {
+        auth.signInAnonymously().catch(err => {
+          console.error('Anonymous Authentication chưa được bật:', err);
+        });
+      }
+    });
 
     // ==========================================
     // ĐỒNG BỘ DỮ LIỆU THỜI GIAN THỰC TỪ FIRESTORE
@@ -658,8 +776,6 @@
       });
     }
 
-    // Tin nhắn mới lưu cả ngày và giờ (DD/MM/YYYY HH:mm).
-    // Tin nhắn cũ chưa có trường date sẽ hiển thị “Chưa có ngày” thay vì tự đoán ngày.
     function renderChatMessages(messages) {
       const chatBox = document.getElementById('chat-messages');
       const myName = (localStorage.getItem('chat_my_name') || '').trim().toUpperCase();
@@ -677,8 +793,8 @@
 
         chatBox.innerHTML += `
           <div class="chat-msg ${msgType}">
-            <div class="msg-info"><b>${msg.user}</b> • ${msg.date || 'Chưa có ngày'}${msg.time ? ' ' + msg.time : ''}</div>
-            <div class="bubble">${msg.text}</div>
+            <div class="msg-info"><b>${v6Esc(msg.user)}</b> • ${v6Esc(msg.dateTime || (msg.date ? msg.date + ' ' : '') + (msg.time || ''))}</div>
+            <div class="bubble">${v6Esc(msg.text)}</div>
           </div>
         `;
       });
@@ -695,12 +811,13 @@
       localStorage.setItem('chat_my_name', userInput);
 
       const now = new Date();
-      const dateStr = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
+      const dateStr = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth()+1).toString().padStart(2, '0')}/${now.getFullYear()}`;
       const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      const dateTimeStr = `${dateStr} ${timeStr}`;
 
       db.collection("trip_data").doc("chat").get().then((doc) => {
         let messages = doc.exists && doc.data().list ? doc.data().list : [];
-        messages.push({ user: userInput, text: textInput, date: dateStr, time: timeStr });
+        messages.push({ user: userInput, text: textInput, time: timeStr, date: dateStr, dateTime: dateTimeStr });
         db.collection("trip_data").doc("chat").set({ list: messages }).then(() => {
           document.getElementById('chat-text').value = '';
         });
@@ -793,7 +910,7 @@
             });
           }
 
-          return L.marker(wp.latLng, { icon: customIcon }).bindPopup(`<b>${p.name}</b><br>${p.desc}`);
+          return L.marker(wp.latLng, { icon: customIcon }).bindPopup(`<b>${v6Esc(p.name)}</b><br>${v6Esc(p.desc || '')}`);
         },
         addWaypoints: false,
         routeWhileDragging: false
@@ -876,9 +993,9 @@
         tbody.innerHTML += `
           <tr>
             <td><b>${index + 1}</b></td>
-            <td><b>${p.name}</b></td>
-            <td class="col-coord"><code>${p.lat}, ${p.lng}</code></td>
-            <td>${p.desc || '-'}</td>
+            <td><b>${v6Esc(p.name)}</b></td>
+            <td class="col-coord"><code>${v6Esc(p.lat)}, ${v6Esc(p.lng)}</code></td>
+            <td>${v6Esc(p.desc || '-')}</td>
             <td>${legInfo}</td>
             <td class="admin-col">
               <button class="btn btn-danger" onclick="deletePoint(${index})">Xóa</button>
@@ -889,15 +1006,17 @@
 
       let sumH = Math.floor(totalMinSum / 60);
       let sumM = totalMinSum % 60;
-      const kmText = `${new Intl.NumberFormat('vi-VN', {maximumFractionDigits: 1}).format(totalKmSum)} km`;
-      document.getElementById('total-distance').innerText = kmText;
+      document.getElementById('total-distance').innerText = `${totalKmSum.toFixed(1)} km`;
       document.getElementById('total-time').innerText = `${sumH} giờ ${sumM} phút`;
-      const v6Km = document.getElementById('v6-total-km');
-      if(v6Km) v6Km.textContent = kmText;
+
+      // Đồng bộ tổng quãng đường lên thẻ Tóm tắt V6.
+      // Trước đây thẻ này luôn hiển thị 0 km vì chưa được cập nhật.
+      const v6TotalKm = document.getElementById('v6-total-km');
+      if (v6TotalKm) v6TotalKm.textContent = `${totalKmSum.toFixed(1)} km`;
     }
 
     function addCustomPoint() {
-      if (!v6RequireAdmin()) return;
+      if (!v6IsAdmin()) return alert('Chức năng này chỉ dành cho Quản trị viên.');
       let name = document.getElementById('point-name').value;
       let desc = document.getElementById('point-desc').value;
       let lat = parseFloat(document.getElementById('point-lat').value);
@@ -921,7 +1040,7 @@
     }
 
     function deletePoint(index) {
-      if (!v6RequireAdmin()) return;
+      if (!v6IsAdmin()) return alert('Chức năng này chỉ dành cho Quản trị viên.');
       db.collection("trip_data").doc("points").get().then((doc) => {
         let points = doc.exists && doc.data().list ? doc.data().list : defaultPoints;
         if (points.length <= 2) return alert("Lộ trình cần ít nhất 2 điểm!");
@@ -931,7 +1050,7 @@
     }
 
     function resetDefaultPoints() {
-      if (!v6RequireAdmin()) return;
+      if (!v6IsAdmin()) return alert('Chức năng này chỉ dành cho Quản trị viên.');
       if (confirm("Bạn có chắc chắn muốn khôi phục lại 7 điểm chuẩn ban đầu?")) {
         db.collection("trip_data").doc("points").set({ list: defaultPoints });
       }
@@ -943,9 +1062,9 @@
       members.forEach((m, index) => {
         tbody.innerHTML += `
           <tr>
-            <td><b>${m.name}</b></td>
-            <td>${m.phone}</td>
-            <td>${m.role}</td>
+            <td><b>${v6Esc(m.name)}</b></td>
+            <td>${v6Esc(m.phone)}</td>
+            <td>${v6Esc(m.role)}</td>
             <td class="admin-col"><button class="btn btn-danger" onclick="deleteMember(${index})">Xóa</button></td>
           </tr>
         `;
@@ -954,7 +1073,7 @@
     }
 
     function addMember() {
-      if (!v6RequireAdmin()) return;
+      if (!v6IsAdmin()) return alert('Chức năng này chỉ dành cho Quản trị viên.');
       let name = document.getElementById('member-name').value;
       let phone = document.getElementById('member-phone').value;
       let role = document.getElementById('member-role').value || "Thành viên";
@@ -973,7 +1092,7 @@
     }
 
     function deleteMember(index) {
-      if (!v6RequireAdmin()) return;
+      if (!v6IsAdmin()) return alert('Chức năng này chỉ dành cho Quản trị viên.');
       db.collection("trip_data").doc("members").get().then((doc) => {
         let members = doc.exists && doc.data().list ? doc.data().list : [];
         members.splice(index, 1);
@@ -990,6 +1109,7 @@
     let v6EditingId = null;
 
     const V6_CATS = ["Xăng","Lưu trú","Ăn uống","Vé tham quan","Quà lưu niệm","Vé đường bộ","Gửi xe"];
+
 
     function v6RequireAdmin(){
       if(!v6IsAdmin()){
@@ -1223,10 +1343,6 @@
       target.innerHTML='<div class="v6-admin-note">Bản đồ chi tiết vẫn nằm ở khu vực Lộ trình gốc phía trên. Danh sách bên dưới là bản xem nhanh.</div>'+source.closest('.table-container').outerHTML;
       const copy=target.querySelector('tbody');
       if(copy) copy.id='v6-route-copy-tbody';
-      const total = document.getElementById('total-distance')?.textContent || '0 km';
-      const time = document.getElementById('total-time')?.textContent || '';
-      const summary = document.getElementById('v6-route-summary');
-      if(summary) summary.textContent = `Tổng quãng đường: ${total}${time ? ' · Thời gian dự kiến: ' + time : ''}`;
     }
 
     function v6GetMemberNames(){
@@ -1268,9 +1384,12 @@
       v6RefreshPayerLists();
     }
 
-    auth.onAuthStateChanged(function(user){
-      loadAdminRole(user);
-    });
+    // Patch the existing role checker so V6 updates instantly.
+    const v6OriginalCheckAdminStatus = checkAdminStatus;
+    checkAdminStatus = function(){
+      v6OriginalCheckAdminStatus();
+      v6SyncRoleUI();
+    };
 
     document.addEventListener('DOMContentLoaded',function(){
       v6ListenExpenses();
