@@ -673,14 +673,27 @@
       }
 
       try {
-        await auth.signInWithEmailAndPassword(email, password);
-        const user = auth.currentUser;
+        console.log('[ADMIN LOGIN] Firebase project:', firebaseConfig.projectId);
+        console.log('[ADMIN LOGIN] Email:', email);
+
+        // Dùng chính UserCredential trả về, tránh phụ thuộc vào auth.currentUser
+        // trong thời điểm Firebase đang chuyển từ Anonymous -> Email/Password.
+        const cred = await auth.signInWithEmailAndPassword(email, password);
+        const user = cred.user;
+
+        console.log('[ADMIN LOGIN] Authentication OK. UID:', user.uid);
+        console.log('[ADMIN LOGIN] Is anonymous:', user.isAnonymous);
+
         await loadAdminRole(user);
 
         if (!isAdminUser) {
+          console.error('[ADMIN LOGIN] Authentication thành công nhưng UID chưa có role=admin:', user.uid);
           await auth.signOut();
           await auth.signInAnonymously().catch(()=>{});
-          if (errorEl) { errorEl.textContent='Tài khoản này chưa được cấp quyền Quản trị.'; errorEl.style.display='block'; }
+          if (errorEl) {
+            errorEl.innerHTML = '⚠️ Đăng nhập Firebase thành công nhưng tài khoản này <b>chưa được cấp quyền Admin</b>.<br>UID: <code>' + user.uid + '</code><br>Kiểm tra Firestore: <code>admin_users/' + user.uid + '</code> có <code>role = admin</code>.';
+            errorEl.style.display='block';
+          }
           return;
         }
 
@@ -688,9 +701,32 @@
         closeAdminLogin();
         alert('Đăng nhập quản trị thành công!');
       } catch (e) {
-        console.error(e);
+        console.error('[ADMIN LOGIN] Firebase Auth error:', e);
+        console.error('[ADMIN LOGIN] code:', e && e.code);
+        console.error('[ADMIN LOGIN] message:', e && e.message);
+
+        // Hiển thị mã lỗi Firebase thật thay vì che bằng câu “kiểm tra email/mật khẩu”.
+        // Không hiển thị mật khẩu hoặc dữ liệu nhạy cảm.
+        let detail = (e && e.message) ? e.message : 'Không xác định';
+        const code = (e && e.code) ? e.code : 'unknown';
+
+        const friendly = {
+          'auth/invalid-credential': 'Thông tin đăng nhập không hợp lệ (Firebase trả về invalid-credential).',
+          'auth/wrong-password': 'Mật khẩu không đúng.',
+          'auth/user-not-found': 'Không tìm thấy tài khoản Email/Password này trong Firebase.',
+          'auth/invalid-email': 'Email không đúng định dạng.',
+          'auth/user-disabled': 'Tài khoản Firebase này đang bị vô hiệu hóa.',
+          'auth/operation-not-allowed': 'Phương thức Email/Password chưa được Enable trong Firebase Authentication.',
+          'auth/too-many-requests': 'Firebase đang tạm thời chặn đăng nhập do có quá nhiều lần thử. Hãy chờ một lúc rồi thử lại.',
+          'auth/network-request-failed': 'Không kết nối được tới Firebase. Kiểm tra Internet hoặc trình duyệt.',
+          'auth/unauthorized-domain': 'Domain website chưa được thêm vào Firebase Authentication → Authorized domains.'
+        };
+
         if (errorEl) {
-          errorEl.textContent = 'Đăng nhập thất bại. Kiểm tra email/mật khẩu.';
+          errorEl.innerHTML = '<b>❌ Đăng nhập Firebase thất bại</b><br>' +
+            '<b>Mã lỗi:</b> <code>' + code + '</code><br>' +
+            '<b>Nguyên nhân:</b> ' + (friendly[code] || detail) + '<br>' +
+            '<small>Project: <code>' + firebaseConfig.projectId + '</code></small>';
           errorEl.style.display = 'block';
         }
       }
